@@ -2,177 +2,391 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>粉体设备高级预选型</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>粉体设备高级预选型 - 极简开关版</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Segoe UI","Microsoft YaHei","微软雅黑",system-ui,sans-serif;background:linear-gradient(180deg,#eef6f6 0%,#f6fafb 100%);background-attachment:fixed;color:#22343c;padding:18px 16px 32px;-webkit-font-smoothing:antialiased;min-height:100vh}
-.wrap{max-width:960px;margin:0 auto}
-header{padding:10px 4px 18px;text-align:center}
-header h1{font-size:24px;font-weight:800;color:#0f3d40;letter-spacing:.5px;background:linear-gradient(120deg,#0d9488,#2563eb);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-header p{font-size:13px;color:#5b7c82;margin-top:6px}
-.card{background:#fff;border:1px solid rgba(13,148,136,.10);border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 2px 10px rgba(20,60,70,.05),0 10px 28px rgba(20,60,70,.05)}
-.card h2{font-size:16px;font-weight:700;color:#0f3d40;margin-bottom:14px;padding-left:11px;border-left:4px solid #0d9488;line-height:1.3}
-.card h2 .dot{display:none}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.field{display:flex;flex-direction:column;gap:5px}
-.field.full{grid-column:1/-1}
-.field label{font-size:13px;color:#2f4f54;font-weight:600}
-input[type=text],input[type=number],select{
-  background:#fbfdfd;border:1px solid #d6e4e6;border-radius:10px;padding:8px 12px;font-size:14px;color:#22343c;
-  outline:none;transition:border .15s,box-shadow .15s,background .15s;width:100%;font-family:inherit;height:42px;box-shadow:inset 0 1px 2px rgba(20,60,70,.04)}
-input::placeholder{color:#9ab0b5}
-input:focus,select:focus{border-color:#0d9488;background:#fff;box-shadow:0 0 0 3px rgba(13,148,136,.16)}
-.size-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.size-row select{flex:0 0 110px;min-width:0}
-.size-row input{flex:1 1 120px;min-width:0}
-.size-row .unit{flex:0 0 120px;min-width:0}
-.hint{font-size:12px;color:#0d9488;min-height:16px;margin-top:3px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:3px}
-.chip{
-  background:#fff;border:1px solid #d6e4e6;border-radius:999px;padding:6px 14px;font-size:13px;color:#365f63;
-  cursor:pointer;user-select:none;transition:all .15s;font-family:inherit;height:32px;line-height:1.4}
-.chip:hover{border-color:#0d9488;color:#0f766e;background:#f0fbfa}
-.chip.sel{background:#0d9488;color:#fff;border-color:#0d9488;box-shadow:0 2px 6px rgba(13,148,136,.30)}
-.auto-tip{font-size:12px;color:#b45309;margin-top:5px;display:none;line-height:1.5}
-.matInfo{font-size:12px;color:#14494d;background:#f0fbfa;border:1px solid #b9e6df;border-radius:10px;padding:7px 11px;margin-top:5px;display:none;line-height:1.6}
-.matInfo.show{display:block}
-.srcmark{color:#0d9488;font-size:11px;font-weight:600}
-.btn{
-  width:100%;margin-top:14px;padding:10px;border:none;border-radius:12px;font-size:15px;font-weight:700;color:#fff;
-  background:linear-gradient(135deg,#0d9488,#2563eb);cursor:pointer;height:46px;transition:filter .15s,transform .05s;
-  box-shadow:0 4px 14px rgba(13,148,136,.25);letter-spacing:1px}
-.btn:hover{filter:brightness(1.06)}.btn:active{transform:translateY(1px);filter:brightness(.97)}
-.summary{font-size:13px;color:#4d6a6f;margin-bottom:12px;line-height:1.6}
-.item{background:#fbfdfd;border:1px solid #e2ecee;border-radius:14px;padding:14px 16px;margin-bottom:12px;display:flex;gap:12px;align-items:flex-start;box-shadow:0 1px 4px rgba(20,60,70,.04);transition:box-shadow .15s}
-.item:hover{box-shadow:0 4px 14px rgba(20,60,70,.08)}
-.rank{flex-shrink:0;width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#0d9488,#2563eb);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}
-.nm{font-size:15px;font-weight:700;color:#16343a}
-.md{font-size:13px;color:#0d9488;font-weight:700;margin-top:2px}
-.badge{display:inline-block;background:#e6f6f5;color:#0f766e;border-radius:999px;font-size:11px;font-weight:600;padding:2px 10px;margin-bottom:5px}
-.reasons{margin-top:6px;font-size:13px;color:#334d53;line-height:1.65}
-.subnote{font-size:12px;color:#8aa0a5;margin-top:4px}
-.nomatch{background:#fff9ec;border:1px solid #f5d98b;border-radius:12px;padding:11px 14px;font-size:13px;color:#8a5d0a;margin-bottom:12px;line-height:1.6}
-.note{font-size:12px;color:#6d858a;margin-top:16px;line-height:1.75;border-top:1px solid #e2ecee;padding-top:12px}
-.tip{font-size:12px;color:#6d858a;margin-top:10px;line-height:1.65}
-.taglabel{font-size:13px;color:#2f4f54;font-weight:600;margin-bottom:5px}
-.notice{margin-top:14px;padding:11px 14px;background:#eefaf8;border:1px solid #c3ede5;border-radius:12px;font-size:13px;color:#0f766e;text-align:center;line-height:1.6}
-@media (max-width:640px){.grid{grid-template-columns:1fr}.size-row select,.size-row .unit{flex:1 1 40%;min-width:0}.size-row input{flex:1 1 100%}body{padding:12px 10px 24px}.card{padding:16px;border-radius:14px}header h1{font-size:20px}}
-@media (max-width:420px){.chips{gap:6px}.chip{padding:5px 10px;font-size:12px}}
+  :root {
+    --bg: #0f0f11; --surface: #1a1a1e; --text-main: #f2f2f5; --text-sub: #8b8b93;
+    --line: #2a2a30; --accent: #2979ff; --accent-glow: rgba(41, 121, 255, 0.3);
+    --danger: #ff5252;
+    
+    --shadow-out: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.03);
+    --shadow-in: inset 4px 4px 10px rgba(0,0,0,0.6), inset -2px -2px 6px rgba(255,255,255,0.05);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background-color: var(--bg); color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
+    line-height: 1.5; -webkit-font-smoothing: antialiased; padding: 24px 16px 60px;
+  }
+
+  .wrap { max-width: 520px; margin: 0 auto; }
+
+  .header { margin-bottom: 24px; padding: 0 4px; }
+  .header h1 { 
+    font-size: 28px; font-weight: 900; letter-spacing: -0.04em; color: #fff;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .header h1::before { content: ''; display: block; width: 6px; height: 22px; background: var(--accent); border-radius: 3px; }
+
+  .card {
+    background: var(--surface); border-radius: 20px;
+    box-shadow: var(--shadow-out); border: 1px solid rgba(255, 255, 255, 0.04);
+    margin-bottom: 20px; overflow: hidden; position: relative;
+  }
+
+  .card-head { padding: 18px 20px 10px; display: flex; justify-content: space-between; align-items: center; }
+  .card-title-wrap { display: flex; align-items: center; gap: 8px; }
+  .card-num { font-size: 12px; font-weight: 800; color: var(--accent); background: rgba(41, 121, 255, 0.15); padding: 2px 8px; border-radius: 6px; }
+  .card-title { font-size: 16px; font-weight: 700; color: var(--text-main); }
+
+  .card-body { padding: 10px 20px 20px; }
+
+  /* 基础输入框 */
+  .input-group { margin-bottom: 16px; }
+  .input-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-sub); margin-bottom: 8px; }
+  .input-field {
+    width: 100%; background: var(--bg); border: none; border-radius: 12px;
+    padding: 16px; color: var(--text-main); font-family: inherit; font-size: 16px; font-weight: 500;
+    box-shadow: var(--shadow-in); outline: none; border: 1px solid transparent; transition: border 0.2s;
+  }
+  .input-field:focus { border: 1px solid var(--accent); box-shadow: var(--shadow-in), 0 0 0 3px var(--accent-glow); }
+  select.input-field {
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%238b8b93%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat; background-position: right 16px top 50%; background-size: 12px auto;
+  }
+
+  /* 滑块与数字输入 */
+  .slider-container { margin-bottom: 24px; }
+  .slider-container:last-child { margin-bottom: 0; }
+  
+  .slider-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; }
+  .slider-label { font-size: 13px; font-weight: 600; color: var(--text-sub); }
+  .slider-value-wrap { text-align: right; position: relative; }
+  
+  .slider-value { 
+    font-size: 28px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; 
+    transition: color 0.1s; cursor: pointer;
+    border-bottom: 1px dashed rgba(255,255,255,0.2);
+    padding-bottom: 2px;
+  }
+  .slider-value:hover { border-bottom-color: var(--accent); }
+  
+  .inline-input {
+    font-size: 28px; font-weight: 900; line-height: 1;
+    background: rgba(41, 121, 255, 0.1); border: 1px solid var(--accent);
+    color: #fff; width: 110px; text-align: right; outline: none;
+    border-radius: 8px; padding: 0 4px;
+    font-family: inherit; -webkit-appearance: none;
+  }
+  
+  .slider-unit { font-size: 14px; color: var(--text-sub); font-weight: 600; margin-left: 2px; }
+
+  input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 8px 0; }
+  input[type=range]:focus { outline: none; }
+  input[type=range]::-webkit-slider-runnable-track {
+    width: 100%; height: 12px; cursor: pointer;
+    background: var(--bg); border-radius: 6px; box-shadow: var(--shadow-in); border: 1px solid rgba(255,255,255,0.02);
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; height: 28px; width: 28px; border-radius: 50%;
+    background: var(--surface); border: 2px solid var(--accent);
+    margin-top: -9px; cursor: pointer; box-shadow: 2px 2px 6px rgba(0,0,0,0.5), -1px -1px 4px rgba(255,255,255,0.1);
+    transition: transform 0.1s, border-color 0.2s;
+  }
+  input[type=range]::-webkit-slider-thumb:active { transform: scale(1.15); background: var(--surface-hover); }
+
+  .slider-ticks { display: flex; justify-content: space-between; font-size: 11px; color: #55555c; font-weight: 600; margin-top: 4px; padding: 0 4px; }
+
+  .unit-switch { display: flex; background: var(--bg); border-radius: 8px; padding: 2px; box-shadow: var(--shadow-in); border: 1px solid rgba(255,255,255,0.02); }
+  .unit-switch button {
+    padding: 4px 12px; border: none; background: transparent; font-size: 12px; font-weight: 700;
+    color: var(--text-sub); border-radius: 6px; cursor: pointer; transition: all 0.2s;
+  }
+  .unit-switch button.on { background: var(--surface-hover); color: #fff; box-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+
+  .btn-primary {
+    display: block; width: 100%; padding: 18px; border-radius: 16px;
+    background: var(--accent); color: #fff; border: none; font-family: inherit; font-size: 18px; font-weight: 800;
+    cursor: pointer; box-shadow: 0 6px 20px var(--accent-glow), inset 0 2px 0 rgba(255,255,255,0.2);
+    transition: all 0.1s; margin-bottom: 32px;
+  }
+  .btn-primary:active { transform: translateY(2px); box-shadow: 0 2px 10px var(--accent-glow); }
+
+  /* =========================================
+     新设计：iOS 风格工艺开关列表
+     ========================================= */
+  .switch-list {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  
+  .switch-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .switch-row:last-child { border-bottom: none; }
+  .switch-row:active { background: rgba(255,255,255,0.03); }
+
+  .switch-label {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-main);
+    transition: color 0.2s;
+  }
+
+  /* iOS 开关轨道 */
+  .switch-track {
+    width: 44px;
+    height: 24px;
+    border-radius: 24px;
+    background: #333;
+    position: relative;
+    transition: background 0.3s ease;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+  }
+
+  /* iOS 开关滑块 */
+  .switch-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background 0.2s;
+  }
+
+  /* 开启状态 */
+  .switch-row.on .switch-track {
+    background: var(--accent);
+  }
+  .switch-row.on .switch-thumb {
+    transform: translateX(20px);
+  }
+  .switch-row.on .switch-label {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* 特殊：易燃易爆开启状态 */
+  .switch-row[data-k="ex"].on .switch-track {
+    background: var(--danger);
+  }
+  .switch-row[data-k="ex"].on .switch-label {
+    color: var(--danger);
+  }
+
+  /* =========================================
+     结果区与评分 UI
+     ========================================= */
+  .res-header { font-size: 18px; font-weight: 800; color: #fff; margin: 24px 4px 12px; }
+  
+  .result-tag {
+    position: absolute; top: 16px; right: 16px;
+    padding: 4px 12px; border-radius: 8px;
+    font-size: 16px; font-weight: 900; 
+    display: flex; align-items: center; justify-content: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .tag-red { color: #ff3b30; border: 1px solid rgba(255,59,48,0.4); background: rgba(255,59,48,0.1); }
+  .tag-yellow { color: #ffcc00; border: 1px solid rgba(255,204,0,0.4); background: rgba(255,204,0,0.1); }
+  .tag-green { color: #34c759; border: 1px solid rgba(52,199,89,0.4); background: rgba(52,199,89,0.1); }
+
+  .res-main-title { 
+    font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 4px; 
+    padding-right: 80px; word-break: break-all;
+  }
+  .res-sub-title { font-size: 14px; color: var(--text-sub); margin-bottom: 20px; }
+  
+  .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .res-item span { display: block; font-size: 12px; font-weight: 600; color: var(--text-sub); margin-bottom: 4px; }
+  .res-item b { display: block; font-size: 15px; font-weight: 700; color: var(--text-main); }
+  
+  .res-warn { margin-top: 20px; padding: 16px; border-radius: 12px; background: rgba(255, 82, 82, 0.08); border: 1px solid rgba(255, 82, 82, 0.2); color: #ff8a80; font-size: 13px; line-height: 1.6; }
+  .res-warn b { color: var(--danger); font-weight: 800; }
+  .res-opt { margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--line); font-size: 13px; color: var(--text-sub); }
+  .res-opt b { color: var(--text-main); font-weight: 700; }
+  
+  .empty-state { text-align: center; padding: 32px 0; }
+  .empty-state h3 { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+  .empty-state p { font-size: 14px; color: var(--text-sub); }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>粉体设备高级预选型</h1>
-    <p>粉体设备 · 离线预选型工具（数据内置，无需联网）</p>
-  </header>
 
+  <div class="header">
+    <h1>粉体预选型</h1>
+  </div>
+
+  <!-- 01 基础信息 -->
   <div class="card">
-    <h2><span class="dot"></span>输入物料与需求参数</h2>
-    <div class="grid">
-      <div class="field">
-        <label>物料名称（输入后自动匹配物料库）</label>
-        <input type="text" id="matName" placeholder="如：碳酸钙、滑石粉、氧化铝，或英文名/CAS号" oninput="autoMatchMaterial()">
-        <div class="matInfo" id="matInfo"></div>
+    <div class="card-head">
+      <div class="card-title-wrap"><span class="card-num">01</span><span class="card-title">物料与产能</span></div>
+    </div>
+    <div class="card-body">
+      <div class="input-group">
+        <label class="input-label">物料名称（自动匹配）</label>
+        <input id="mat" class="input-field" type="text" list="matList" placeholder="输入物料名称，如 石英..." autocomplete="off">
+        <datalist id="matList"></datalist>
       </div>
-      <div class="field">
-        <label>物料类别（必选）</label>
-        <select id="matCat">
-          <option value="">请选择物料类别…</option>
-          <option>矿物</option><option>非金属矿</option><option>化工</option><option>无机盐</option>
-          <option>冶金</option><option>磨料</option><option>陶瓷</option><option>耐火材料</option>
-          <option>医药</option><option>食品</option><option>保健品</option><option>农药</option>
-          <option>颜料</option><option>染料</option><option>电池材料</option><option>新材料</option>
-          <option>塑料/橡胶/胶黏剂</option><option>建材</option><option>烟气脱硫脱酸</option><option>实验室/通用</option>
+      <div class="input-group">
+        <label class="input-label">物料类别</label>
+        <select id="cat" class="input-field">
+          <option value="">请选择类别</option>
+          <option value="mineral">非金属矿</option>
+          <option value="hard">硬质矿物 / 高硅</option>
+          <option value="battery">电池材料</option>
+          <option value="pharma">医药 / 原料药</option>
+          <option value="food">食品 / 保健品</option>
+          <option value="chem">化工 / 颜料</option>
+          <option value="herb">中药 / 植物纤维</option>
+          <option value="metal">金属粉末</option>
+          <option value="waste">固废 / 粉煤灰</option>
+          <option value="other">其他</option>
         </select>
       </div>
-      <div class="field">
-        <label>产能（kg/h）</label>
-        <input type="number" id="capacity" min="0" step="any" placeholder="如：500（仅数字，单位kg/h）">
-      </div>
-      <div class="field">
-        <label>目标粒度</label>
-        <div class="size-row">
-          <select id="sizeKey">
-            <option value="D97" selected>D97</option>
-            <option value="D50">D50</option>
-            <option value="D0">D0</option>
-            <option value="D90">D90</option>
-            <option value="D99">D99</option>
-            <option value="D100">D100</option>
-          </select>
-          <input type="number" id="sizeVal" min="0" step="any" placeholder="如：10" oninput="updateHint()">
-          <select id="sizeUnit" class="unit" onchange="updateHint()">
-            <option value="um" selected>微米 μm</option>
-            <option value="mesh">目 mesh</option>
-          </select>
+      
+      <!-- 产能滑块 -->
+      <div class="slider-container">
+        <div class="slider-header">
+          <span class="slider-label">目标产能</span>
+          <div class="slider-value-wrap">
+            <span class="slider-value" id="capDisplay" style="color: var(--accent);">500</span>
+            <span class="slider-unit">kg/h</span>
+          </div>
         </div>
-        <div class="hint" id="meshHint"></div>
-      </div>
-      <div class="field full">
-        <div class="taglabel">特性与工艺条件（可多选，按需勾选）</div>
-        <div class="chips" id="tagChips"></div>
-        <div class="auto-tip" id="autoTip">已根据物料库自动匹配，可手动调整</div>
+        <input type="range" id="capSlider" min="10" max="10000" step="10" value="500">
+        <div class="slider-ticks"><span>10</span><span>2,500</span><span>5,000</span><span>10,000</span></div>
       </div>
     </div>
-    <button class="btn" onclick="runSelect()">开始选型</button>
-    <div class="tip">匹配逻辑：物料类别关键词 → 目标粒度（特征值+目/微米换算后按 D97/D50 范围比对）→ 特性标签（硬度/含水/热敏等）→ 目标产能（kg/h）→ 综合评分排序。未完全匹配时给出最接近候选及差异提示。</div>
   </div>
 
-  <div class="card" id="resultCard" style="display:none">
-    <h2><span class="dot"></span>推荐设备列表</h2>
-    <div class="summary" id="summary"></div>
-    <div id="noMatch"></div>
-    <div id="results"></div>
-    <div class="notice">以上推荐仅供参考，具体选型请咨询技术工程师</div>
+  <!-- 02 粒度标准 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title-wrap"><span class="card-num">02</span><span class="card-title">粒度标准</span></div>
+      <div class="unit-switch" id="unitSwitch">
+        <button class="on" data-u="um">µm</button>
+        <button data-u="mesh">目</button>
+      </div>
+    </div>
+    <div class="card-body">
+      
+      <!-- 粒度滑块 -->
+      <div class="slider-container">
+        <div class="slider-header">
+          <span class="slider-label">目标粒度</span>
+          <div class="slider-value-wrap">
+            <span class="slider-value" id="sizeDisplay" style="color: var(--accent);">45</span>
+            <span class="slider-unit" id="sizeUnitLabel">µm</span>
+          </div>
+        </div>
+        <input type="range" id="sizeSlider" min="1" max="500" step="1" value="45">
+        <div class="slider-ticks" id="sizeTicks"><span>1</span><span>100</span><span>300</span><span>500</span></div>
+      </div>
+
+      <div class="unit-switch" style="width: 100%; margin-top: 16px; padding: 4px;">
+        <button style="flex:1" data-v="D50" class="on">D50</button>
+        <button style="flex:1" data-v="D90">D90</button>
+        <button style="flex:1" data-v="D97">D97</button>
+        <button style="flex:1" data-v="D99">D99</button>
+        <button style="flex:1" data-v="D100">D100</button>
+      </div>
+    </div>
   </div>
 
-  <div class="note">
-    数据来源：产品样册与培训资料（分级机/机械粉碎/气流粉碎）等；共收录 48 个产品系列、232 个设备型号/产品条目（含分级机、气流粉碎、机械粉碎、改性机、球磨分级生产线、实验室设备、辅助设备）。<br>
-    v2：表单升级（目-微米转换/特性标签/物料自动关联）<br>
-    v3：物料库自动匹配（内置物料词典+PubChem在线补充）<br>
-    v4：界面美化与物料词典扩充（130+物料）<br>
-    本工具为离线预选型参考，最终选型请以设备厂家技术确认与物料实测为准。
+  <!-- 03 工艺属性 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title-wrap"><span class="card-num">03</span><span class="card-title">物理与工艺属性</span></div>
+    </div>
+    <div class="card-body" style="padding-top: 0;">
+      
+      <!-- iOS 风格开关列表 -->
+      <div class="switch-list" id="chips">
+        <div class="switch-row" data-k="hard">
+          <span class="switch-label">莫氏硬度高</span>
+          <div class="switch-track"><div class="switch-thumb"></div></div>
+        </div>
+        <div class="switch-row" data-k="quartz">
+          <span class="switch-label">磨蚀性极强</span>
+          <div class="switch-track"><div class="switch-thumb"></div></div>
+        </div>
+        <div class="switch-row" data-k="wet">
+          <span class="switch-label">含水率高</span>
+          <div class="switch-track"><div class="switch-thumb"></div></div>
+        </div>
+        <div class="switch-row" data-k="fib">
+          <span class="switch-label">纤维 / 高韧性</span>
+          <div class="switch-track"><div class="switch-thumb"></div></div>
+        </div>
+        <div class="switch-row" data-k="sticky">
+          <span class="switch-label">粘性易糊壁</span>
+          <div class="switch-track"><div class="switch-thumb"></div></div>
+        </div>
+        <div class="switch-row" data-k="static">
+          <span class="switch-label">易起静电</span>
+          <div class="switch-track"><div class="switch-thumb"></div></div>
+        </div>
+        <div class="switch-row" data-k="flow">
+          <span class="switch-label">流动性差</span>
+          <div class="switch-track"><div class="switch-thumb"></div></div>
+        </div>
+        <div class="switch-row" data-k="heat">
+          <span class="switch-label">热敏 / 低熔点</span>
+          <div class="switch-track"><div class="switch-thumb"></div></div>
+        </div>
+        <div class="switch-row" data-k="oxidation">
+          <span class="switch-label">易氧化</span>
+          <div class="switch-track"><div class="switch-thumb"></div></div>
+        </div>
+        <div class="switch-row" data-k="volatile">
+          <span class="switch-label">易挥发</span>
+          <div class="switch-track"><div class="switch-thumb"></div></div>
+        </div>
+        <div class="switch-row" data-k="ex">
+          <span class="switch-label" style="color: var(--danger);">易燃易爆</span>
+          <div class="switch-track"><div class="switch-thumb"></div></div>
+        </div>
+        <div class="switch-row" data-k="pure">
+          <span class="switch-label">无金属污染</span>
+          <div class="switch-track"><div class="switch-thumb"></div></div>
+        </div>
+        <div class="switch-row" data-k="gmp">
+          <span class="switch-label">医药食品级</span>
+          <div class="switch-track"><div class="switch-thumb"></div></div>
+        </div>
+      </div>
+
+    </div>
   </div>
+
+  <button class="btn-primary" id="go">执行智能评估</button>
+  <div id="out"></div>
+
 </div>
 
 <script>
+/* ============ 完整设备库（48系列） ============ */
 const DATA = [{"c": "分级机", "n": "FL/ITC系列单转子气流分级机", "m": "FL200;FL300;FL360;FL450;FL600;FL800(ITC4);FL900(ITC5);FL1000(ITC6);FL1200(ITC7);FL1500(ITC8);FL2000(ITC9);ITC10", "cap": "FL200:100-300kg/h;FL300:200-1000;FL360:300-1500;FL450:1000-3000;FL600:2000-6000;FL800:5000-8000;FL900:6000-12000;FL1000:8000-15000;FL1200:12000-20000;FL1500:15000-30000;FL2000:20000-50000;ITC10:400000-600000(样册原文)", "feed": "—", "size": "D97:5~150μm(FL200);6~150(FL300/360);8~150(FL450/600);10~150(FL800);15~150(FL900/1000);20~150(FL1200);25~150(FL1500/2000);D50:2~45μm", "pow": "分级电机:4~110kW;风机:15~500kW", "spd": "分级轮最大转速:2900~370rpm(按型号)", "oth": "处理风量:400~110000m3/h;分级效率60~90%(ITC10为50~80%)", "mat": "化工、矿物、冶金、陶瓷、医药、食品、保健品、新材料等", "feat": "干法微米级精细分级;可分级球状/片状/针状颗粒;硬度6级以上可陶瓷防护;可防爆/氮气循环", "prin": "立式分级涡轮高速旋转产生离心力,细颗粒通过分级轮进入旋风分离器/除尘器收集,粗颗粒经二次风淘洗后卸料排出", "sell": "立式涡轮转速低耐磨损;负压运行粉尘<20mg/m3噪音≤80dB;可多级串联同时产多粒度产品;可与球磨/振动磨/立磨/雷蒙磨闭路循环", "src": "分级机样册2024版+培训资料"}, {"c": "分级机", "n": "FL/ITC系列多转子气流分级机", "m": "FL360/3;FL360/4;FL360/6;FL450/3;FL450/4;F450/6", "cap": "FL360/3:2000-6000kg/h;FL360/4:4000-8000;FL360/6:6000-15000;FL450/3:3000-9000;FL450/4:5000-12000;F450/6:8000-24000", "feed": "—", "size": "D97:5~150μm(360系列);8~150μm(450系列);D50:2~45μm", "pow": "分级电机:33~90kW;风机:75~200kW", "spd": "叶轮直径360/450mm", "oth": "处理风量:9000~32000m3/h;分级效率60~90%", "mat": "化工、矿物、冶金、陶瓷、医药、食品等", "feat": "干法微米级精细分级;可分级球状/片状/针状;可多级串联产多粒度段;可防爆/氮气循环", "prin": "多个垂直安装分级转子,风筛式二次风设计,离心力分离粗细物料", "sell": "多转子较单转子产量更高;每个转子带速度传感器变频调速;风筛式二次风能量利用率高;负压运行噪音≤76dB", "src": "分级机样册2024版+培训资料"}, {"c": "分级机", "n": "FW/HTS系列单转子气流分级机", "m": "FW120;FW200;FW280;FW400;FW520;FW630;FW800;FW1000", "cap": "FW120:1~10kg/h;FW200:10~200;FW280:30~500;FW400:50~800;FW520:100~1500;FW630:200~2500;FW800:400~3000;FW1000:800~5000", "feed": "—", "size": "D97:2.5~45μm(FW120~FW630);4~45(FW800);5~45(FW1000)", "pow": "分级电机:2.2~30/37kW;风机:3~75/90kW", "spd": "分级轮最大转速未列明;叶轮直径φ60~φ500mm(金属轮)", "oth": "处理风量:300~9500m3/h;分级效率60~80%", "mat": "化工、矿物(碳酸钙/高岭土/石英/滑石/云母等非矿)、冶金、磨料、陶瓷、耐火材料、医药、农药、食品、保健品、新材料", "feat": "干法微米级精细分级;可分级球状/片状/针状颗粒;硬度6级以上可陶瓷防护", "prin": "卧式分级涡轮产生强大离心力分离粗细物料,细颗粒进旋风分离器/除尘器收集", "sell": "卧式涡轮可实现超细物料精确分级;负压运行粉尘<20mg/m3噪音≤80dB;可串联球磨/振动磨/立磨/雷蒙磨", "src": "分级机样册2024版+培训资料"}, {"c": "分级机", "n": "FW/HTS系列多转子气流分级机", "m": "FW400/3;FW400/4;FW400/6;FW630/3;FW630/4;FW630/6;FW800/3;FW800/4;FW800/6;FW1000/3;FW1000/4;FW1000/5;FW1000/6", "cap": "FW400/3:200~1500kg/h;FW400/4:300~2000;FW400/6:1000~6000;FW630/3:1000~6000;FW630/4:2000~8000;FW630/6:3000~12000;FW800/3:2000-7500;FW800/4:3000-10000;FW800/6:5000-15000;FW1000/3:5000-12000;FW1000/4:8000-16000;FW1000/5:15000-20000;FW1000/6:20000-24000", "feed": "—", "size": "D97:2.5~45μm(400/630系列);3~45(800系列);4~45(1000系列)", "pow": "分级电机:5.5/7.5*3~30/37*6kW(手册7.5/11*3~30/37*6)", "spd": "叶轮直径:200/315/400/500mm", "oth": "处理风量:4200~52000m3/h;分级效率60~80%", "mat": "化工、矿物(碳酸钙/高岭土/石英/滑石/云母等)、冶金、磨料、陶瓷、耐火材料、医药、农药、食品、保健品、新材料", "feat": "干法微米级精细分级;可分级球状/片状/针状;硬度6级以上可陶瓷防护", "prin": "多个水平安装卧式分级涡轮,离心力分离,细颗粒经分级轮收集,粗颗粒返回", "sell": "多转子实现更高产量;每转子带速度传感器变频调速;卧式涡轮顶点切割准确;负压运行噪音≤76dB;可与气流磨/机械磨/球磨机等串联闭路循环", "src": "分级机样册2024版+培训资料"}, {"c": "分级机", "n": "惯性分级机(GX系列)", "m": "GX-05;GX-10;GX-20;GX-30;GX-60;GX-90;GX-120;GX-150;GX-240;GX-300", "cap": "GX-05:10~20kg/h;GX-10:20~130;GX-20:40~260;GX-30:60~390;GX-60:120~780;GX-90:180~1200;GX-120:240~1500;GX-150:300~1900;GX-240:480~3100;GX-300:580~3900", "feed": "—", "size": "—(无转动部件,自分级)", "pow": "功率:2~173kW", "spd": "空气流量:3~124m3/min", "oth": "外形尺寸:3000×3000×3500~8500×8500×7200mm", "mat": "化工、矿物(碳酸钙/高岭土/石英/滑石/云母/炭黑)、磨料、陶瓷、耐火材料、墨粉、石墨、氧化铈、金属粉末、树脂、涂料、颜料、粉煤灰、化妆品、氧化铝/氢氧化铝/氧化镁/氢氧化镁等", "feat": "尤适于窄粒度分布、流动性差/不规则颗粒物料;可同时得到粗/中/细三档产品", "prin": "利用气流COANDA(柯安达)效应:压缩空气携带粉体射出,射流沿COANDA块壁面弯曲,轻颗粒随气流弯曲流动,重颗粒惯性大飞向远处,按轻重从微粉/中粉/粗粉流道分离", "sell": "构造简单无转动体无需电机,低运行成本;粗颗粒剔除精准;超微粉分级精度高;可防爆/高温低温常温设计", "src": "分级机样册2024版+培训资料"}, {"c": "分级机", "n": "FS05惯性分级机(实验室级)", "m": "FS05", "cap": "—", "feed": "—", "size": "—(同时得粗/中/细三档)", "pow": "无电机(无转动部件)", "spd": "—", "oth": "构造简单;COANDA物理原理", "mat": "复印机/激光打印机墨粉、氧化铈、氧化铝、氢氧化铝、金属粉末等", "feat": "窄粒度分布;流动性差/不规则颗粒物料", "prin": "利用气流COANDA效应按颗粒轻重惯性分离", "sell": "无转动体低运行成本;粗颗粒剔除精准;可防爆/高温低温常温设计", "src": "培训资料"}, {"c": "气流粉碎", "n": "MQL系列流化床式气流粉碎机", "m": "MQL03;MQL06;MQL10;MQL20;MQL30;MQL40;MQL60;MQL80;MQL100;MQL120;MQL160;MQL240", "cap": "MQL03:10~40kg/h;MQL06:10~60;MQL10:20~300;MQL20:40~600;MQL30:100~900;MQL40:200~1200;MQL60:500~2000;MQL80:800-3000;MQL100:1000-4000;MQL120:1500-6000;MQL160:2000-8000;MQL240:4000-12000", "feed": "<3mm(MQL03~MQL30);<5mm(MQL40~MQL240)", "size": "D97:6~150μm(MQL03~MQL20);8~150(MQL30~MQL60);10~150(MQL80~MQL240);D50:2~45μm", "pow": "叶轮(分级)功率:4~55kW;风机功率:7.5~132kW", "spd": "分级轮直径:200~1000mm", "oth": "耗气量:3~240m3/min", "mat": "化工、无机盐、医药、食品、颜料、染料、农药、电池材料、矿物、耐火材料等", "feat": "莫氏硬度9以下干法粉碎;热敏性/低熔点/含糖份/挥发性物料", "prin": "压缩空气经滤干燥后经拉瓦尔喷嘴高速喷入粉碎腔,多股高压气流交汇处物料反复碰撞/摩擦/剪切粉碎,立式分级涡轮分离粗细", "sell": "分级转子立式安装可单/多转子;变频调速灵活调整粒度;低温无介质粉碎产品纯度高;密闭粉碎清洁环保", "src": "气流粉碎样册2024版+培训资料"}, {"c": "气流粉碎", "n": "MQW系列流化床式气流粉碎机", "m": "MQW03;MQW06;MQW10;MQW20;MQW30;MQW40;MQW60;MQW80;MQW100;MQW120;MQW160;MQW240", "cap": "MQW03:0.3~1kg/h;MQW06:10~30;MQW10:20~300;MQW20:40~600;MQW30:100~900;MQW40:200~1200;MQW60:500~2000;MQW80:800-3000;MQW100:1000-4000;MQW120:1500-6000;MQW160:2000-8000;MQW240:4000-12000", "feed": "<1mm(MQW03);<2mm(MQW06~MQW20);<3mm(MQW30);<5mm(MQW40~MQW240)", "size": "D97:3~45μm;D50:2~45μm", "pow": "分级电机:2.2~90kW;风机:3~90kW", "spd": "分级轮:1~6个;叶轮直径60~315mm", "oth": "耗气量:3~240m3/min", "mat": "化工、矿物、冶金、磨料、陶瓷、耐火材料、医药、农药、食品、保健品、新材料", "feat": "莫氏硬度9以下各种物料干法粉碎;高硬度/高纯度/高附加值物料;热敏性/低熔点/含糖份/挥发性物料", "prin": "拉瓦尔喷嘴高压气流交汇处物料自碰撞粉碎,卧式分级涡轮离心力分离,细颗粒收集,粗颗粒回粉碎区继续粉碎", "sell": "物料自碰撞粉碎区别于刀片/锤头冲击,设备耐磨损产品纯度高;粒形好粒度分布窄;拆装清洗方便无死角;密闭粉碎清洁环保", "src": "气流粉碎样册2024版+培训资料"}, {"c": "气流粉碎", "n": "MQP系列圆盘式气流粉碎机", "m": "MQP01;MQP02;MQP03;MQP06;MQP10;MQP20;MQP30;MQP40;MQP60;MQP80;MQP100", "cap": "MQP01:0.02-0.1kg/h;MQP02:0.2~2;MQP03:1~10;MQP06:5~30;MQP10:10~200;MQP20:50~500;MQP30:100~800;MQP40:200~1000;MQP60:500~2000;MQP80:1000~3000;MQP100:4000~6000", "feed": "<1mm(MQP01~MQP10);<2mm(MQP20~MQP100)", "size": "D97:5~45μm;D50:1.5~45μm", "pow": "—(无转动部件,自分级)", "spd": "—", "oth": "耗气量:1~100m3/min", "mat": "化工、无机盐、医药、食品、颜料、染料、农药、电池材料、矿物、耐火材料等", "feat": "团聚体打散还原;莫氏硬度9以下", "prin": "压缩气体经加料喷射器带原料入粉碎室,多个喷嘴高速气流切线喷向粉碎壁摩擦粉碎,调节粉碎室纵向深度/压力/加料速度控制细度", "sell": "喷嘴数量多粉碎效率高;无转动部件自分级结构;更适于团聚体打散还原", "src": "气流粉碎样册2024版+培训资料"}, {"c": "气流粉碎", "n": "MQPW系列圆盘式带分级气流粉碎机", "m": "MQPW06;MQPW10;MQPW15;MQPW20;MQPW40", "cap": "MQPW06:10~200kg/h;MQPW10:20~400;MQPW15:50~800;MQPW20:150~1500;MQPW40:300~2000", "feed": "<2mm(MQPW06);<3mm(MQPW10~MQPW40)", "size": "D97:8~150μm(MQPW06~MQPW15);10~150(MQPW20~MQPW40);D50:1.5~25μm", "pow": "装机功率:30~200kW", "spd": "分级转子变频调速", "oth": "耗气量:6~40m3/min", "mat": "化工、无机盐、医药、食品、颜料、染料、农药、电池材料、矿物、耐火材料等", "feat": "莫氏硬度9以下;热敏性物料", "prin": "多喷嘴高速喷射物料碰撞粉碎+离心力分离,细颗粒经分级区收集,粗颗粒返回粉碎区继续粉碎", "sell": "喷嘴数量多粉碎效率高;分级转子变频调速灵活调整粒度分布;粉碎粒度D50:1.5~25μm", "src": "气流粉碎样册2024版+培训资料"}, {"c": "气流粉碎", "n": "蒸汽动能磨(S-MQW/L系列)", "m": "S-MQW系列;S-MQL系列(产能2000~20000kg/h级)", "cap": "系列覆盖2000~20000kg/h级产能(手册原文)", "feed": "—", "size": "—", "pow": "—", "spd": "—", "oth": "—", "mat": "非金属矿(滑石、石墨、云母、硅灰石、纤维水镁石、凹凸棒石、高岭土等)", "feat": "超细化低成本生产;以滑石为例产品粒度可达1μm、片厚300nm", "prin": "以过热蒸汽为动力源替代压缩空气,高压蒸汽经喷嘴加速冲击物料自碰撞粉碎", "sell": "蒸汽磨技术实现超细化低成本生产;适合非金属矿大规模加工", "src": "培训资料(第三章前半部分+非金属矿章节)"}, {"c": "气流粉碎", "n": "MQP01实验室用气流磨", "m": "MQP01(实验室)", "cap": "0.5~300g/h(最小处理量0.5g/次)", "feed": "—", "size": "D50:2~15μm可调", "pow": "功率:5.5kW", "spd": "—", "oth": "耗气量:0.5m3/min;尺寸500×350×400mm", "mat": "莫氏硬度9以下各类物料;高硬度/高纯度/高附加值物料;热敏性/低熔点/含糖份/挥发性物料", "feat": "恒温或低温无介质粉碎;关键部件可全陶瓷零金属污染", "prin": "无传动部件自分级结构,气流碰撞粉碎", "sell": "粒形好粒度分布窄;无死角无存料风险易清洁;可防爆/氮气循环", "src": "培训资料"}, {"c": "机械粉碎", "n": "CSM-V系列空气分级磨", "m": "CSM-V280;CSM-V350;CSM-V410;CSM-V510;CSM-V710;CSM-V760;CSM-V900;CSM-V1000;CSM-V1100;CSM-V1250;CSM-V1500;CSM-V2000", "cap": "—(样册未列产能)", "feed": "—", "size": "D50:2~75μm", "pow": "粉碎电机:7.5~355kW;分级电机:2.2~55/75kW", "spd": "粉碎盘转速:7500~1120r/min;分级轮转速:4500~1150rpm", "oth": "粉碎盘直径:280~2000mm", "mat": "化工、无机盐、医药、食品、颜料、染料、农药、电池材料、矿物、耐火材料", "feat": "粉碎部件可按物料特性灵活改变(棒状/锤头/齿状)", "prin": "物料经高速旋转粉碎盘冲击,与粉碎齿圈碰撞剪切摩擦粉碎,变频调节分级轮分离粗细,粗料返回二次粉碎", "sell": "粉碎分级一体化;结构紧凑占地小装机功率低;不同粉碎装置优化粉碎力;适应性广性价比高", "src": "机械粉碎样册2024版+培训资料"}, {"c": "机械粉碎", "n": "CSM-H系列空气分级磨", "m": "CSM-H280;CSM-H400;CSM-H510;CSM-H630;CSM-H710;CSM-H1000;CSM-H1250;CSM-H1500", "cap": "—(样册未列产能)", "feed": "—", "size": "D50:2~75μm(系列通用)", "pow": "粉碎电机:7.5~200/250kW;分级电机:3~45kW", "spd": "粉碎盘转速:8500~1500r/min;分级轮转速:7500~1500rpm", "oth": "粉碎盘直径:280~1500mm;粉碎盘线速度:110~117m/s;分级轮直径:140~800mm", "mat": "化工、无机盐、医药、食品、颜料、染料、农药、电池材料、矿物、耐火材料", "feat": "—", "prin": "物料受高速旋转粉碎盘强烈冲击+齿圈碰撞,受剪切/摩擦/碰撞综合力粉碎,分级轮变频分离粗细", "sell": "粉碎分级一体化;粉碎盘线速度高(110-117m/s)粉碎效果好", "src": "机械粉碎样册2024版+培训资料"}, {"c": "机械粉碎", "n": "CSM-VD系列空气分级磨", "m": "CSM-VD280;CSM-VD350;CSM-VD450;CSM-VD510;CSM-VD710;CSM-VD900;CSM-VD1100", "cap": "—(样册未列产能)", "feed": "—", "size": "D50:2~75μm(系列通用)", "pow": "粉碎电机:7.5~110/132kW;分级电机:1.5~30kW", "spd": "粉碎盘转速:7000~1920r/min;分级轮转速:4500~2000rpm", "oth": "粉碎盘直径:280~1100mm;粉碎盘线速度:102.5~110.7m/s", "mat": "化工、无机盐、医药、食品、颜料、染料、农药、电池材料、矿物、耐火材料", "feat": "—", "prin": "物料受高速旋转粉碎盘冲击+齿圈碰撞粉碎,分级轮变频分离粗细", "sell": "粉碎分级一体化;结构紧凑;高性价比", "src": "机械粉碎样册2024版+培训资料"}, {"c": "机械粉碎", "n": "CSM-HJ系列空气分级磨", "m": "CSM-HJ500;CSM-HJ600;CSM-HJ800;CSM-HJ1000;CSM-HJ1250;CSM-HJ1500", "cap": "—(样册未列产能)", "feed": "—", "size": "D50:2~75μm(系列通用)", "pow": "粉碎电机:30~250kW;分级电机:5.5~37/45kW", "spd": "粉碎盘转速:4200~1500r/min;分级轮转速:4650~1500rpm", "oth": "粉碎盘直径:510~1500mm;粉碎盘线速度:110~117.3m/s;分级轮直径:260~800mm", "mat": "化工、无机盐、医药、食品、颜料、染料、农药、电池材料、矿物、耐火材料", "feat": "—", "prin": "物料受高速旋转粉碎盘冲击+齿圈碰撞粉碎,分级轮变频分离粗细", "sell": "粉碎分级一体化;结构紧凑;高性价比", "src": "机械粉碎样册2024版+培训资料"}, {"c": "机械粉碎", "n": "MZ系列振动磨(中小振幅)", "m": "MZ10;MZ30;MZ50;MZ100;MZ200;MZ300;MZ500", "cap": "MZ10:1-5kg/h;MZ30:5-20;MZ50:10-50;MZ100:20-150;MZ200:50-300;MZ300:100-500;MZ500:150-800", "feed": "入料粒度:5mm(MZ10~MZ50);10mm(MZ100~MZ500)", "size": "出料粒度:10~150μm;D50:2.5~150μm", "pow": "装机功率:0.75~15kW", "spd": "—", "oth": "腔体容积:10~500L", "mat": "化工、矿物、建材、冶金、磨料、陶瓷、耐火材料、食品、保健品、新材料", "feat": "莫氏硬度9以下各种软硬物料;热敏性/低熔点物料可水冷或强制冷粉碎;可GMP标准用于医药/中草药", "prin": "磨筒内研磨介质(棒/段/球)在激振器高频振动下做抛射/自转/公转运动,对物料冲击/摩擦/剪切超细粉碎和均匀混合", "sell": "与球磨机相比粉碎效率高占地小;研磨介质及衬板可高锰钢/高铬钢/不锈钢/氧化铝/氧化锆/石英制作耐磨损污染少;空气弹簧/橡胶弹簧减震降噪;可用于混合/表面改性/活化", "src": "机械粉碎样册2024版+培训资料"}, {"c": "机械粉碎", "n": "MZ系列振动磨(大振幅)", "m": "MZ100;MZ300;MZ500;MZ600;MZ800;MZ1000;MZ1200;MZ2000", "cap": "MZ100:100-200kg/h;MZ300:200-300;MZ500:300-600;MZ600:400-800;MZ800:500-1000;MZ1000:800-1500;MZ1200:1000-1800;MZ2000:2000-3000", "feed": "入料粒度:5mm", "size": "出料粒度:10~150μm;D50:2.5~150μm", "pow": "装机功率:15~220kW", "spd": "—", "oth": "腔体容积:100~2000L", "mat": "化工、矿物、建材、冶金、磨料、陶瓷、耐火材料、食品、保健品、新材料", "feat": "莫氏硬度9以下各种软硬物料;可水冷/强制冷;可GMP标准", "prin": "激振器高频振动驱动研磨介质冲击/摩擦/剪切物料", "sell": "大振幅高产能力;与球磨相比效率高占地小;可与分级机串联获得更细更窄产品", "src": "机械粉碎样册2024版+培训资料"}, {"c": "机械粉碎", "n": "MZ系列中药专用振动磨", "m": "MZ03;MZ06;MZ10;MZ30;MZ50;MZ100;MZ200", "cap": "—(按腔体:3~200L,装料量0.6~40L)", "feed": "—", "size": "出料粒度:D50:2.5~150μm;适合中位径达微米级粉碎", "pow": "电机功率:0.37~7.5kW;电源220V(MZ03)/三相380V", "spd": "—", "oth": "腔体容积:3~200L;装料量:0.6~40L", "mat": "中草药、医药、食品、保健品、化妆品", "feat": "高韧性/纤维状/海绵状/含油率高/含糖量高物料;植物花粉孢子破壁率95%;干式/湿式粉碎、精密混炼、包覆改性", "prin": "激振器高频振动驱动研磨介质冲击/摩擦/剪切物料", "sell": "常温/水冷/低温/超低温/防氧化/防爆炸多种配置;制药可按GMP/FDA标准;全密封无粉尘污染;可带冷却水夹套或强冷却(-30~0℃)", "src": "培训资料"}, {"c": "机械粉碎", "n": "CUM-P系列针盘磨(粗碎型)", "m": "CUM-P160;P250;P360;P500;P630;P800;P1000;P360(双动力);P630(双动力)", "cap": "—(样册未列产能)", "feed": "—", "size": "D50:10~45μm(系列);粉碎粒度范围D50:10~45μm", "pow": "功率:4~75kW(粗碎);双动力P360:22+30kW;P630:2×55kW", "spd": "转速:9000~1800r/min;粉碎盘最外端线速度:75.3~94.2m/s", "oth": "粉碎盘直径:180~1000mm(粗碎);棒针个数219~280;最大处理风量360~10000m3/h", "mat": "化工(纤维素/肥料/颜料/塑料/聚乙烯/聚丙烯/PVC等)、食品(香料/糖/咖啡豆/淀粉等)、颜料/染料、矿物(石墨/滑石/碳酸钙/高岭土等)", "feat": "可选用高温/低温/常温设计;空气密闭循环/惰性气体循环;可防爆", "prin": "物料高速旋转粉碎盘(转子)与定子之间受强烈碰撞/剪切/摩擦综合力粉碎", "sell": "无筛网设计出料流畅产能高运行成本低;线速度高粉碎粒度细;可单动力或双动力(双动力线速度200m/s以上);结构紧凑易拆装清洗", "src": "机械粉碎样册2024版+培训资料"}, {"c": "机械粉碎", "n": "CUM-P系列针盘磨(微粉型)", "m": "CUM-P160;P250;P360;P500;P630;P800;P1000", "cap": "—(样册未列产能)", "feed": "—", "size": "D50:10~45μm(系列)", "pow": "功率:4~90kW", "spd": "转速:12000~2050r/min;粉碎盘最外端线速度:100.5~107.3m/s", "oth": "粉碎盘直径:160~1000mm(微粉);棒针个数270~400;最大处理风量360~10000m3/h", "mat": "化工、食品、颜料/染料、矿物等", "feat": "可高温/低温/常温设计;可防爆;惰性气体循环", "prin": "物料在高速旋转粉碎盘与定子间受碰撞/剪切/摩擦粉碎", "sell": "微粉型线速度更高(100m/s+)粉碎更细;无筛网出料流畅;结构紧凑性价比高", "src": "机械粉碎样册2024版+培训资料"}, {"c": "机械粉碎", "n": "CUM-F系列锤式磨", "m": "CUM-160F;CUM-250F;CUM-360F", "cap": "CUM-160F:5~50kg/h;CUM-250F:15~200;CUM-360F:25~500", "feed": "—", "size": "粉碎细度:20~325目;D50:10~850μm", "pow": "功率:3~4kW(CUM-160F);5.5~7.5(CUM-250F);11~15(CUM-360F)", "spd": "最高转速:12000/7500/5550r/min", "oth": "粉碎盘直径:150/250/350mm;筛网孔径0.1mm~3mm", "mat": "化工、无机盐、医药、食品、颜料、染料、农药、电池材料、矿物、耐火材料", "feat": "可高温/低温/常温设计;可防爆;惰性气体循环", "prin": "物料在高速旋转粉碎盘(转子)与定子之间受碰撞/剪切/摩擦粉碎", "sell": "结构紧凑占地小易拆装清洗;装机功率低应用范围广性价比高;不同安装组合适用不同工艺", "src": "培训资料"}, {"c": "机械粉碎", "n": "CUM180万能磨(实验室级)", "m": "CUM180", "cap": "产量:500g~5000g/h", "feed": "—", "size": "产品粒度:125~425μm", "pow": "电机功率:1.5kW(220V)", "spd": "—", "oth": "粉碎盘Φ180mm;自带筛网孔径0.2mm-3mm;外形尺寸820×650×930mm", "mat": "通用实验室/小批量物料", "feat": "—", "prin": "高速旋转粉碎盘冲击粉碎+筛网筛分", "sell": "结构紧凑易拆装清洗;应用范围广性价比高", "src": "培训资料"}, {"c": "机械粉碎", "n": "ULM系列转子磨", "m": "ULM400;ULM600;ULM800;ULM1000;ULM1200;ULM1500", "cap": "—(样册未列产能;样册列蒸发水量75~1650kg/h)", "feed": "—", "size": "D50:3~45μm(手册)", "pow": "粉碎电机:30~200/250kW", "spd": "粉碎盘转速:4200~1250rpm;粉碎盘线速度:79.8~94.9m/s", "oth": "粉碎盘直径:400~1450mm;锤头层数4~7;粉碎腔直径410~1460mm;处理风量3000~12000m3/h;参考风压5000~7000Pa", "mat": "团聚物料打散还原(轻钙/高岭土/氢氧化铝/氧化镁);热敏性物料(聚乙烯醇/PVC/PE/纤维素);非金属矿、化工、染料、饲料、食品", "feat": "莫氏硬度3以下(样册:2~3以下)各种物料;特别适合纤维/塑料等韧性物料;可外接加热空气干燥或冷却空气低温粉碎", "prin": "多层粉碎盘+多个粉碎刀片组成转子,物料受剪切/碰撞/摩擦粉碎,合格物料随上升气流收集,粗料返回二次粉碎", "sell": "刀片采用耐磨合金可更换;可调刀头与齿圈距离适应不同物料;立轴式结构通过调整分级棒数量调节粒度;可外接冷风实现低温粉碎;可防爆", "src": "机械粉碎样册2024版+培训资料"}, {"c": "机械粉碎", "n": "ULM-G系列干燥打散改性用转子磨(蜂巢磨)", "m": "ULM350-G;ULM500G;ULM750G;ULM1000G;ULM1250G;ULM1500G;ULM2000G", "cap": "—(样册未列产能;列蒸发量200~1700kgH2O/h)", "feed": "—", "size": "D50:1~250μm", "pow": "主机功率:30~315/355kW", "spd": "最大转速:5580~1050rpm;粉碎盘线速度:102.3~110m/s", "oth": "粉碎盘直径:350~2000mm;粉碎盘层数7;最大气流量4000~35000m3/h;最小气流量1250~8000m3/h", "mat": "湿法研磨后矿物(方解石/大理石/石灰石/锆英砂/高岭土/白云石/菱镁石等)、化工、食品", "feat": "可承受400℃高温进入,轴承隔热设计;团聚粉体打散还原;含水量较高物料干燥粉碎一体", "prin": "设备运行带动强大气流,团聚粉体停留在特殊凹槽定子中,涡旋产生剪切/摩擦/离心力将物料还原到原始粒径", "sell": "集干燥和粉碎功能一体化,比传统干燥节能30%-50%;研磨块和研磨内衬可更换;可外接加热空气;可内置分级轮循环研磨;可防爆", "src": "培训资料"}, {"c": "机械粉碎", "n": "RTM系列涡流磨", "m": "RTM300;RTM500;RTM750/800;RTM1000;RTM1250;RTM1500", "cap": "—(样册未列产能)", "feed": "—", "size": "D50:1~250μm", "pow": "粉碎电机:22~160/200kW", "spd": "粉碎盘转速:7350~1550rpm;粉碎盘线速度:114~121.8m/s", "oth": "粉碎盘中径:300~1500mm;锤头层数4~6;处理风量1200~6500m3/h;参考风压7000Pa", "mat": "团聚物料打散还原(轻钙/高岭土/氢氧化铝/氧化镁);热敏性/纤维性物料;非金属矿、化工、染料、饲料、食品", "feat": "热敏性/纤维性物料;纳米和微米材料团聚体解聚还原;可外接热源实现包覆/改性/打散一体", "prin": "锥形转子+锥形定子,物料受剪切/碰撞/摩擦多种力粉碎,合格物料随上升气流收集,粗料返回二次粉碎", "sell": "锥形转定子间隙调整控制细度和产量;转子最高线速度120~130m/s粉碎效果好;处理风量大粉碎温度低;强大的涡流流场物料瞬间粉碎无温升;合金转子高速动平衡6层耐磨盘", "src": "机械粉碎样册2024版+培训资料"}, {"c": "机械粉碎", "n": "TSM系列碳酸氢钠专用粉碎机", "m": "CSM-280T;CSM-350T;CSM-510T;CSM-710T;CSM-1100T;CSM-1250T", "cap": "产量:CSM-280T:2~100kg/h;350T:10~400;510T:15~600;710T:30~1200;1100T:60~1500;1250T:300~3000", "feed": "—", "size": "粉碎粒度:5~300μm(280T);10~300μm(510T及以上);产品粒度D90:10~45μm可调", "pow": "配套动力-粉碎盘:7.5~132/160kW;分级叶轮:1.5~18.5/22kW;喂料器:0.55~1.1kW", "spd": "粉碎盘转速:7500~1700r/min;分级叶轮转速:500~4500~200~1600r/min;喂料器20~100r/min", "oth": "最大处理风量:700~15000m3/h", "mat": "市政垃圾焚烧、危废焚烧、污泥焚烧、水泥厂、玻璃厂、钢厂焦炉等烟气脱硫", "feat": "干法脱硫:去除尾气95%以上SO2、99%HCl;碳酸氢钠(小苏打)作吸附剂喷入高温烟气管道;年运行超8000小时", "prin": "粉碎机+加料系统+引风机组成系统,高速旋转粉碎盘与齿圈形成粉碎区,物料受摩擦/剪切/碰撞粉碎,分级涡轮分离,细颗粒进入烟气管道,粗颗粒返回粉碎", "sell": "粉碎分级一体化通过分级轮转速调节粒度;大风量进风降低粉碎温度可配冷风;磨机自带助力翻盖装置快速检修;智能控制一键操作在线监测SO2浓度/风量/喂料量/研磨温度;可防爆", "src": "培训资料"}, {"c": "改性机", "n": "涡流磨改性机", "m": "RTM-300;RTM-400;RTM-500;RTM-750;RTM-1000", "cap": "以碳酸钙为例:RTM-300:500kg/h;RTM-400:900;RTM-500:1500;RTM-750:2000-2500;RTM-1000:4000", "feed": "—", "size": "D97:10μm(以碳酸钙为例)", "pow": "功率:22kW;37kW;45kW;75kW;110kW", "spd": "转子最高线速度130m/s", "oth": "—", "mat": "塑料、橡胶、胶黏剂等高分子材料及复合材料中的非金属矿物填料(碳酸钙等)表面改性", "feat": "改性助剂可选硬脂酸或偶联剂(钛酸脂/铝酸脂/磷酸脂偶联剂);对各种无机矿物粉均可活化;改性剂稀释/乳化/喷雾添加提高分散度", "prin": "锥形转子和定子间隙调整,物料在转子与定子之间高速冲击/剪切/摩擦完成包覆", "sell": "最少包覆材料成本取得最高包覆率;包覆充分改性效果好;系统温度时间可控产品质量稳定;自动化程度高", "src": "培训资料"}, {"c": "改性机", "n": "蜂巢磨改性机", "m": "ULM-G系列(改性应用)", "cap": "—", "feed": "—", "size": "—", "pow": "—", "spd": "—", "oth": "—", "mat": "塑料、橡胶、胶黏剂等基材中的非金属矿物填料表面改性", "feat": "对各种无机矿物粉均可达到理想活化效果", "prin": "蜂巢磨(ULM-G)气流涡旋剪切摩擦完成包覆改性", "sell": "干燥/粉碎/改性一体化;比传统干燥节能30%-50%", "src": "培训资料"}, {"c": "改性机", "n": "三辊磨改性机", "m": "300/3;600/3;900/3", "cap": "以碳酸钙为例D97:10μm(见粒度行)", "feed": "—", "size": "—(以碳酸钙为例D97:10μm)", "pow": "粉碎电机:3×18.5kW;3×37kW;3×75kW", "spd": "粉碎盘转速:5050;2580;1850rpm;粉碎盘线速度:77.4;85.1;87.2m/s", "oth": "粉碎盘直径:292;630;900mm;锤头个数120;粉碎腔直径310/650/930mm;处理风量2000~9000m3/h;参考风压5500~7500Pa", "mat": "塑料、橡胶、胶黏剂等基材中的非金属矿物填料表面改性", "feat": "高速摩擦自生热不需加热装置;改性助剂硬脂酸或偶联剂;对各种无机矿物粉均可活化", "prin": "3个转子相对运动改变气旋涡流实现对粉体表面包覆", "sell": "国内公司常用改性设备;投资省运行成本低;最少包覆材料最高包覆率;温度时间可控", "src": "培训资料"}, {"c": "改性机", "n": "针盘磨改性机", "m": "CUM-P200;CUM-P400;CUM-P630;CUM-P800", "cap": "以碳酸钙为例: D97:5μm:300/700/1800/3000kg/h;D97:10μm:500/1300/3300/5800;D97:15μm:600/1600/4000/7200", "feed": "—", "size": "D97:5~15μm可调(以碳酸钙为例)", "pow": "—", "spd": "两个转子相对运动线速度200m/s以上", "oth": "—", "mat": "塑料、橡胶、胶黏剂等基材中的非金属矿物填料表面改性", "feat": "欧美公司常用改性设备;高速冲击剪切摩擦导致温度急剧上升满足颗粒包覆需要", "prin": "两个转子相对高速运动(线速度200m/s+)对粉体表面高速冲击/剪切/摩擦完成包覆", "sell": "线速度高包覆效果好;均匀喂料和改性剂定量喂入保障包覆充分性;温度时间可控", "src": "培训资料"}, {"c": "改性机", "n": "高速搅拌改性机", "m": "间歇式批次机型(型号未列)", "cap": "间歇式批次工作", "feed": "—", "size": "—", "pow": "—", "spd": "—", "oth": "内衬可采用陶瓷材料零金属污染,尤其适合石英粉体表面改性;带加热和定时装置", "mat": "塑料、橡胶、胶黏剂等基材中的非金属矿物填料;石英粉体", "feat": "适于硅烷类等助剂对改性温度高、反应时间长的物料", "prin": "搅拌混合+加热改性,温度和时间可控", "sell": "间歇批次工作;陶瓷内衬零金属污染;改性温度时间可控", "src": "培训资料"}, {"c": "球磨分级生产线", "n": "球磨分级生产线(碳酸钙方案)", "m": "IBM1830;IBM2200;IBM2400;IBM2600;IBM2800;IBM3000", "cap": "分级产能D97:15μm:2.7/4.0/5.4/8.0/9.4/11t/h;D97:10μm:2.0/3.0/4.0/6.0/7.0/8.0;D97:5μm:0.9/1.3/1.8/2.7/3.0/3.6", "feed": "破碎(两段破碎)后进磨", "size": "分级粒度D97:5~15μm(按产品调节)", "pow": "球磨机功率:220/320/450/630/710/800kW;分级机功率:192/290/384/580/670/764kW;附属设备(粗破37~110kW+输送包装11~37kW+空压机18.5~90kW)", "spd": "—", "oth": "分级机配置:1台FW630/4;1台FW630/6;2台FW630/4;1台FW630/6;FW800/4+FW800/6;2台FW800/6", "mat": "碳酸钙(方解石/大理石/石灰石/白垩)、石英、锆石、长石、重晶石、高岭土、白云石、菱镁石、氧化铝、超细水泥、矿渣、钢渣等", "feat": "工艺源自德国,国际标准非矿加工生产线;硬矿物可无铁污染设计(氧化铝陶瓷/石英/SILEX衬板)", "prin": "破碎→研磨→分级→包装→磁选→输送→提升;球磨机后并联或串联多台分级机同时生产多粒度产品", "sell": "大规模低成本生产(以碳酸钙为例单线D97:10μm年产量可达10万吨,吨产品能耗电150度);球磨机衬板球级配量身定制;分级机串联优化组合降低能耗;环保减振降噪;自动程序控制", "src": "培训资料"}, {"c": "球磨分级生产线", "n": "球磨分级生产线(石英方案)", "m": "IBM1570;IBM1830;IBM2200;IBM2400;IBM2600", "cap": "分级产能D90-92:45μm:1.0/2.0/3.0/4.5/6.7t/h;15μm:0.5/1.0/1.6/2.7/3.4;10μm:0.35/0.75/1.0/1.5(IBM2600未列)", "feed": "破碎(两段破碎)后进磨", "size": "分级粒度D90-92:10~45μm(按产品调节)", "pow": "球磨机功率:75/160/245/320/560kW;分级机功率:48/73.5/105/120/197kW;附属设备输送包装5~22kW+空压机7.5~22kW", "spd": "—", "oth": "分级机配置:1台FL360;1台FL450;1台ITC3;1台ITC4;1台ITC5", "mat": "石英、碳酸钙、锆英砂、长石、煤矸石、白云石、菱镁石等非金属矿", "feat": "工艺源自德国;硬矿物可无铁污染设计", "prin": "破碎→研磨→分级→包装→磁选→输送;球磨机后配FL/ITC系列分级机", "sell": "大规模低成本生产;分级粒度控制灵活;自动化控制;个性定制(年产2万吨以下单层厂房/以上多层立体布置)", "src": "培训资料"}, {"c": "实验室设备", "n": "三合一实验室粉碎分级机", "m": "三合一(型号未列)", "cap": "—", "feed": "—", "size": "D50:1.5~45μm任意可调", "pow": "—", "spd": "卧式高速分级转子可达18000转/分", "oth": "外形尺寸1580×920×1470mm;过滤精度可达0.1μm(99.99%捕集);可惰性气体循环", "mat": "科研院所、大专院校实验室新产品研发;易燃易爆物料粉体分级", "feat": "粉碎过程可选用惰性气体保护安全系数最高;内衬可氧化铝/全陶瓷零金属污染", "prin": "首创气流粉碎+气流分级+机械粉碎三合一组合式结构,根据工艺切换粉碎方式", "sell": "结构紧凑操作转换方便;高效气密封结构;移动式机械粉碎机单元拆装方便;可惰性气体循环", "src": "培训资料"}, {"c": "实验室设备", "n": "MZ03振动磨(实验室级)", "m": "MZ03(实验室)", "cap": "产量500g~1000g/h;物料装填量约1L", "feed": "—", "size": "产品粒度:100目~1250目;D50:2.5~150μm", "pow": "电机功率:0.37kW(220V)", "spd": "—", "oth": "磨筒容积3L;外形尺寸600×350×400mm", "mat": "医药、中草药、食品、保健品;科研院所实验室", "feat": "莫氏硬度9以下各种软硬物料;热敏性/低熔点物料可水冷或强制冷粉碎", "prin": "激振器高频振动驱动研磨介质冲击/摩擦/剪切物料", "sell": "全密闭粉碎;空气弹簧/橡胶弹簧减震降噪;研磨介质及衬板可高锰钢/不锈钢/氧化铝/氧化锆/石英;可防爆", "src": "培训资料"}, {"c": "辅助设备", "n": "真空输送器", "m": "系列(型号未列)", "cap": "—", "feed": "—", "size": "—", "pow": "—", "spd": "—", "oth": "可选用空气压缩机或真空泵作输送动力源", "mat": "粉末、颗粒、片剂、胶囊等粉体物料工位间密闭转运", "feat": "符合GMP和FDA认证", "prin": "负压密闭输送粉体物料", "sell": "模块化设计运动部件少拆卸方便维护费用低", "src": "培训资料"}, {"c": "辅助设备", "n": "无尘投料仓", "m": "系列(型号未列)", "cap": "—", "feed": "—", "size": "—", "pow": "—", "spd": "—", "oth": "投料点自带吸附装置", "mat": "粉碎、输送、包装、称重等投料场景", "feat": "无粉尘外溢操作环境优良", "prin": "投料口吸附除尘", "sell": "可单独控制或集中控制", "src": "培训资料"}, {"c": "辅助设备", "n": "皮带秤", "m": "系列(型号未列)", "cap": "对散装物料连续计量", "feed": "—", "size": "—", "pow": "—", "spd": "—", "oth": "单杠杆单托辊/双托辊/双杠杆双托辊/四托辊等结构;尺寸可定制", "mat": "散装物料连续计量", "feat": "皮带材质适于酸/碱/盐及大气腐蚀环境", "prin": "皮带输送计量", "sell": "计量连续可靠;耐腐蚀", "src": "培训资料"}, {"c": "辅助设备", "n": "除铁器", "m": "系列(型号未列)", "cap": "—", "feed": "—", "size": "—", "pow": "—", "spd": "—", "oth": "可选用人工除铁或自动除铁", "mat": "粉体物料除铁杂质", "feat": "去除铁杂质和铁磁性微粒", "prin": "磁选分离铁杂质", "sell": "保护下游设备,保持物料清洁", "src": "培训资料"}, {"c": "辅助设备", "n": "金属检测仪", "m": "系列(型号未列)", "cap": "—", "feed": "—", "size": "检测灵敏度:Fe≥0.15mm,SUS≥0.35mm", "pow": "—", "spd": "—", "oth": "200种产品存储功能;学习功能", "mat": "自由落体散料中分离磁性及非磁性金属", "feat": "保障产品质量", "prin": "电磁检测+剔除系统快速剔除", "sell": "减少物料损失不干扰生产;可快速更换产品参数", "src": "培训资料"}, {"c": "辅助设备", "n": "自动拆包机", "m": "系列(型号未列)", "cap": "—", "feed": "—", "size": "—", "pow": "—", "spd": "—", "oth": "皮带机自动给袋+割刀自动破袋+振筛袋料分离", "mat": "袋装粉粒状物料拆袋卸料", "feat": "作业粉尘被除尘装置滤除", "prin": "自动给袋→破袋→袋料分离→卸料", "sell": "残破包装袋与物料完美分离不掺杂", "src": "培训资料"}, {"c": "辅助设备", "n": "包装机", "m": "系列(型号未列)", "cap": "包装精度:0.2~0.5%", "feed": "—", "size": "—", "pow": "—", "spd": "—", "oth": "叶轮+螺旋同轴喂料;吨袋包装或小袋包装", "mat": "粉体物料包装", "feat": "机身密封配除尘口环保生产", "prin": "叶轮+螺旋同轴输料出料精确", "sell": "输料快速出料精确;环保型生产", "src": "培训资料"}, {"c": "辅助设备", "n": "关风卸料阀", "m": "系列(型号未列)", "cap": "—", "feed": "—", "size": "—", "pow": "—", "spd": "—", "oth": "材质可铸铁/铸钢/不锈钢", "mat": "粉碎机/分级机粉料定量供料;旋风分离器/收尘器卸料;气力输送系统", "feat": "加工精度高具有锁气功能", "prin": "锁风卸料", "sell": "防漏气;多材质可选", "src": "培训资料"}, {"c": "辅助设备", "n": "开袋站", "m": "系列(型号未列)", "cap": "—", "feed": "—", "size": "—", "pow": "—", "spd": "—", "oth": "开袋/拍打/磁选一体化设计", "mat": "吨袋装粉粒状物料拆包卸料", "feat": "密闭式开袋杜绝粉尘飞扬", "prin": "密闭开袋+拍打+磁选", "sell": "改善工作环境降低生产成本结构紧凑", "src": "培训资料"}, {"c": "辅助设备", "n": "空气锤", "m": "系列(型号未列)", "cap": "—", "feed": "—", "size": "—", "pow": "—", "spd": "—", "oth": "压缩空气作动力源耗气量小", "mat": "料仓、除尘器及管道粉料储存和输送", "feat": "保障物料产生合理流动性促进流通顺畅", "prin": "压缩空气冲击锤击", "sell": "安装方便耗气量小", "src": "培训资料"}, {"c": "辅助设备", "n": "流化器", "m": "系列(型号未列)", "cap": "—", "feed": "—", "size": "—", "pow": "—", "spd": "—", "oth": "压缩空气作动力源", "mat": "料仓、除尘器及管道粉料储存和输送工序", "feat": "保障物料流动性促进流通顺畅", "prin": "气流流化助流", "sell": "安装方便", "src": "培训资料"}, {"c": "辅助设备", "n": "气力输送机", "m": "系列(型号未列)", "cap": "输送距离长输送量大", "feed": "—", "size": "—", "pow": "—", "spd": "—", "oth": "系统含罗茨风机(或空压机)/旋转供料器/喷射器/除尘器;正压或负压输送、密相或稀相", "mat": "粉体物料输送", "feat": "根据输送物料和现场布置提供设计方案", "prin": "气流输送粉体", "sell": "输送距离长输送量大运行成本低", "src": "培训资料"}];
 
-/* ---------- 物料名称 → 特性标签 自动关联映射 ---------- */
-const TAGS = [
-  {id:'hard5',  label:'莫氏硬度大于5'},
-  {id:'corr',   label:'含石英/高腐蚀'},
-  {id:'moist5', label:'含水率大于5'},
-  {id:'fiber',  label:'纤维状/高韧性'},
-  {id:'sticky', label:'黏性强'},
-  {id:'static', label:'易静电'},
-  {id:'agglo',  label:'易团聚'},
-  {id:'heat',   label:'热敏'},
-  {id:'oxid',   label:'易氧化'},
-  {id:'volatile',label:'易挥发'},
-  {id:'nometal',label:'无金属污染'},
-  {id:'gmp',    label:'食品医药GMP'}
-];
-const MAT_MAP = [
-  {keys:['二氧化钛','钛白粉'], tags:['hard5','nometal']},
-  {keys:['石英','硅石','硅灰石','长石','锆石','氧化铝','碳化硅','刚玉'], tags:['hard5','corr']},
-  {keys:['碳酸钙','方解石','大理石','石灰石','白云石'], tags:['agglo']},
-  {keys:['医药','药品','api','维生素','食品','奶粉','糖'], tags:['gmp','heat']},
-  {keys:['金属粉','铝粉','铜粉','铁粉','镁粉','锌粉','镍粉'], tags:['oxid']},
-  {keys:['炭黑','颜料','染料','石墨'], tags:['static','agglo']},
-  {keys:['淀粉','葡萄糖','糖粉','奶粉'], tags:['heat','gmp']},
-  {keys:['树脂','塑料','橡胶','pe','pvc'], tags:['heat','sticky']},
-  {keys:['高岭土','膨润土','蒙脱土'], tags:['sticky','agglo']},
-  {keys:['木粉','纤维','棉花','竹粉'], tags:['fiber']},
-  {keys:['水泥','矿渣','粉煤灰'], tags:['moist5']},
-  {keys:['炸药','硫磺','硝化棉'], tags:['oxid','volatile']}
-];
-
-/* ---------- 内置物料词典（v3）：≥50条常见工业粉体物料 ---------- */
+/* ============ 完整物料库（1433种） ============ */
 const DATA_MATERIALS = [
-  {n:'二氧化钛',alias:['钛白粉'],cas:'13463-67-7',en:'Titanium dioxide',cat:'颜料',den:4.2,hard:6,moist:0.5,tags:['hard5','nometal']},
+{n:'二氧化钛',alias:['钛白粉'],cas:'13463-67-7',en:'Titanium dioxide',cat:'颜料',den:4.2,hard:6,moist:0.5,tags:['hard5','nometal']},
   {n:'碳酸钙',alias:['重钙','轻钙','方解石粉'],cas:'471-34-1',en:'Calcium carbonate',cat:'非金属矿',den:2.7,hard:3,moist:0.3,tags:['agglo']},
   {n:'石英粉',alias:['硅石粉','石英砂','硅微粉'],cas:'14808-60-7',en:'Silicon dioxide',cat:'非金属矿',den:2.65,hard:7,moist:0.2,tags:['hard5','corr']},
   {n:'氧化铝',alias:['刚玉','三氧化二铝'],cas:'1344-28-1',en:'Aluminium oxide',cat:'磨料',den:3.9,hard:9,moist:0.3,tags:['hard5','corr']},
@@ -1607,35 +1821,213 @@ const DATA_MATERIALS = [
   {n:"多孔碳",alias:["多孔炭","介孔碳","微孔碳","多孔活性炭"],cas:"1333-86-4",en:"Porous carbon",cat:"电池材料",den:0.3,hard:1.5,moist:1,tags:["agglo", "static", "nometal"]},
 ];
 
-/* 初始化标签chip */
-(function(){
-  const box=document.getElementById('tagChips');
-  TAGS.forEach(t=>{
-    const b=document.createElement('button');
-    b.type='button'; b.className='chip'; b.id='chip_'+t.id; b.textContent=t.label;
-    b.onclick=()=>{ b.classList.toggle('sel'); };
-    box.appendChild(b);
+/* ============ 类别映射 ============ */
+const CAT_DISPLAY = {
+  mineral:'非金属矿', hard:'硬质矿物/高硅', battery:'电池材料', pharma:'医药/原料药',
+  food:'食品/保健品', chem:'化工/颜料', herb:'中药/植物纤维', metal:'金属粉末',
+  waste:'固废/粉煤灰', other:'其他'
+};
+/* UI 类别 value -> 设备库 mat 字段同义词（命中任一即类别匹配） */
+const CAT_ALIAS = {
+  mineral:['非金属矿','矿物','矿石','石粉','非金属'],
+  hard:['硬质矿物','高硅','矿物','耐火材料','磨料','陶瓷'],
+  battery:['电池材料','锂电','正极','负极'],
+  pharma:['医药','药品','药'],
+  food:['食品','保健品'],
+  chem:['化工','无机盐','颜料','染料','农药'],
+  herb:['中药','植物','纤维','草本'],
+  metal:['金属','冶金','合金'],
+  waste:['固废','粉煤灰','矿渣','废渣','煤矸石','建材'],
+  other:[]
+};
+/* 物料库中文类别 -> UI 类别 value */
+const CAT_TO_VALUE = {
+  '电池材料':'battery','非金属矿':'mineral','化工':'chem','无机盐':'chem','颜料':'chem','染料':'chem','农药':'chem',
+  '医药':'pharma','原料药':'pharma','食品':'food','保健品':'food','中药':'herb','植物纤维':'herb',
+  '金属粉末':'metal','冶金':'metal','矿物':'mineral','耐火材料':'hard','磨料':'hard','陶瓷':'hard',
+  '固废':'waste','粉煤灰':'waste','其他':'other','新材料':'other','塑料橡胶胶黏剂':'chem',
+  '建材':'waste','烟气脱硫脱酸':'waste','实验室通用':'other'
+};
+/* 开关 data-k -> v5 tag id */
+const SWITCH_TAG = {
+  hard:'hard5', quartz:'corr', wet:'moist5', fib:'fiber', sticky:'sticky',
+  static:'static', flow:'agglo', heat:'heat', oxidation:'oxid',
+  volatile:'volatile', pure:'nometal', gmp:'gmp', ex:'ex'
+};
+const TAG_LABEL = {
+  hard5:'莫氏硬度高', corr:'磨蚀性极强', moist5:'含水率高', fiber:'纤维/高韧性',
+  sticky:'粘性易糊壁', static:'易起静电', agglo:'流动性差', heat:'热敏/低熔点',
+  oxid:'易氧化', volatile:'易挥发', nometal:'无金属污染', gmp:'医药食品级', ex:'易燃易爆'
+};
+/* 物料库 tag -> 开关 data-k（ex 保持手动，不自动设置） */
+const TAG_SWITCH = {
+  hard5:'hard', corr:'quartz', moist5:'wet', fiber:'fib', sticky:'sticky',
+  static:'static', agglo:'flow', heat:'heat', oxid:'oxidation',
+  volatile:'volatile', nometal:'pure', gmp:'gmp'
+};
+
+/* ============ 初始化 ============ */
+const matListEl = document.getElementById('matList');
+DATA_MATERIALS.forEach(m => {
+  const opt = document.createElement('option'); opt.value = m.n; matListEl.appendChild(opt);
+  (m.alias || []).forEach(a => { const o2 = document.createElement('option'); o2.value = a; matListEl.appendChild(o2); });
+});
+
+const $ = id => document.getElementById(id);
+const matEl = $('mat'), catEl = $('cat');
+const capSlider = $('capSlider'), capDisplay = $('capDisplay');
+const sizeSlider = $('sizeSlider'), sizeDisplay = $('sizeDisplay');
+const unitSwitch = $('unitSwitch'), sizeUnitLabel = $('sizeUnitLabel'), sizeTicks = $('sizeTicks');
+const chipsEl = $('chips'), outEl = $('out');
+
+let currentUnit = 'um';
+let targetCap = 500;
+let targetSizeUI = 45;
+let actualSizeUm = 45;
+let basis = 'D50';
+
+/* ============ 动画与颜色逻辑 ============ */
+function getDynamicColor(val, min, max) {
+  let p = (val - min) / (max - min);
+  let hue = 210 + p * 110;
+  return `hsl(${hue}, 100%, 65%)`;
+}
+
+function animateNumber(el, targetVal, min, max) {
+  const currentVal = parseFloat(el.innerText.replace(/,/g, '')) || 0;
+  if (currentVal === targetVal) return;
+  const duration = 200;
+  const startTime = performance.now();
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    let progress = Math.min(elapsed / duration, 1);
+    progress = progress * (2 - progress);
+    const current = currentVal + (targetVal - currentVal) * progress;
+    let displayStr = targetVal > 1000 ? Math.round(current).toLocaleString() : Math.round(current);
+    if (targetVal > 1000 && current < 1000) displayStr = Math.round(current);
+    el.innerText = displayStr;
+    el.style.color = getDynamicColor(current, min, max);
+    if (progress < 1) requestAnimationFrame(update);
+    else {
+      el.innerText = targetVal > 1000 ? targetVal.toLocaleString() : targetVal;
+      el.style.color = getDynamicColor(targetVal, min, max);
+    }
+  }
+  requestAnimationFrame(update);
+}
+
+/* ============ 点击数字编辑功能 ============ */
+function makeEditable(displayEl, sliderEl, min, max, isMesh) {
+  displayEl.addEventListener('click', function() {
+    if (this.tagName === 'INPUT') return;
+    const rawValue = this.innerText.replace(/,/g, '');
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.inputMode = 'numeric';
+    input.className = 'inline-input';
+    input.value = rawValue;
+    this.parentNode.replaceChild(input, this);
+    input.focus();
+    input.select();
+    const commit = () => {
+      let val = parseFloat(input.value.replace(/,/g, ''));
+      if (isNaN(val)) val = parseFloat(sliderEl.value);
+      if (val < min) val = min;
+      if (val > max) val = max;
+      sliderEl.value = val;
+      sliderEl.dispatchEvent(new Event('input'));
+      const span = document.createElement('span');
+      span.id = displayEl.id;
+      span.className = 'slider-value';
+      span.innerText = val > 1000 ? val.toLocaleString() : val;
+      span.style.color = getDynamicColor(val, min, max);
+      input.parentNode.replaceChild(span, input);
+      makeEditable(span, sliderEl, min, max, isMesh);
+    };
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    });
   });
-})();
-
-function setTag(id,on){
-  const b=document.getElementById('chip_'+id);
-  if(b) b.classList.toggle('sel',!!on);
-}
-function getSelTags(){
-  const out=[];
-  TAGS.forEach(t=>{ if(document.getElementById('chip_'+t.id).classList.contains('sel')) out.push(t); });
-  return out;
 }
 
-/* 物料库自动匹配（v3+）：本地词典命中→填类别/勾标签/摘要条；英文/CAS未命中→PubChem在线补充 */
+makeEditable(capDisplay, capSlider, 10, 10000, false);
+makeEditable(sizeDisplay, sizeSlider, 1, 500, false);
+
+/* ============ 基础交互 ============ */
+capSlider.addEventListener('input', (e) => {
+  targetCap = parseFloat(e.target.value);
+  const el = document.getElementById('capDisplay') || document.querySelector('.inline-input');
+  if(el && el.tagName !== 'INPUT') animateNumber(el, targetCap, 10, 10000);
+});
+
+sizeSlider.addEventListener('input', (e) => {
+  targetSizeUI = parseFloat(e.target.value);
+  if (currentUnit === 'um') {
+    actualSizeUm = targetSizeUI;
+  } else {
+    actualSizeUm = 15400 / targetSizeUI;
+  }
+  const el = document.getElementById('sizeDisplay') || document.querySelector('.inline-input');
+  if(el && el.tagName !== 'INPUT') animateNumber(el, targetSizeUI, parseInt(sizeSlider.min), parseInt(sizeSlider.max));
+});
+
+unitSwitch.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if(!btn || btn.classList.contains('on')) return;
+  [...unitSwitch.children].forEach(x => x.classList.remove('on'));
+  btn.classList.add('on');
+  currentUnit = btn.dataset.u;
+  const span = document.querySelector('.inline-input') || sizeDisplay;
+  if (span.tagName === 'INPUT') span.blur();
+  if (currentUnit === 'um') {
+    sizeUnitLabel.innerText = 'µm';
+    sizeSlider.min = 1; sizeSlider.max = 500; sizeSlider.step = 1;
+    targetSizeUI = Math.round(15400 / targetSizeUI) || 45;
+    if(targetSizeUI > 500) targetSizeUI = 500;
+    if(targetSizeUI < 1) targetSizeUI = 1;
+    actualSizeUm = targetSizeUI;
+    sizeTicks.innerHTML = `<span>1</span><span>100</span><span>300</span><span>500</span>`;
+  } else {
+    sizeUnitLabel.innerText = '目';
+    sizeSlider.min = 30; sizeSlider.max = 1250; sizeSlider.step = 10;
+    targetSizeUI = Math.round(15400 / targetSizeUI) || 325;
+    if(targetSizeUI > 1250) targetSizeUI = 1250;
+    if(targetSizeUI < 30) targetSizeUI = 30;
+    actualSizeUm = 15400 / targetSizeUI;
+    sizeTicks.innerHTML = `<span>30</span><span>400</span><span>800</span><span>1250</span>`;
+  }
+  sizeSlider.value = targetSizeUI;
+  const newSpan = document.getElementById('sizeDisplay');
+  if(newSpan) {
+    newSpan.innerText = targetSizeUI;
+    newSpan.style.color = getDynamicColor(targetSizeUI, parseInt(sizeSlider.min), parseInt(sizeSlider.max));
+  }
+});
+
+const segButtons = document.querySelectorAll('.unit-switch:not(#unitSwitch) button');
+segButtons.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    segButtons.forEach(b => b.classList.remove('on'));
+    e.target.classList.add('on');
+    basis = e.target.dataset.v;
+  });
+});
+
+chipsEl.addEventListener('click', e => {
+  const row = e.target.closest('.switch-row');
+  if(!row) return;
+  row.classList.toggle('on');
+});
+
+/* ============ 物料联动（v5 物料库） ============ */
+function compactStr(x){ return String(x||'').replace(/\s+/g,'').toLowerCase(); }
 function lookupMaterial(raw){
   const s=String(raw||'').trim();
   if(!s) return null;
-  const compact=x=>String(x||'').replace(/\s+/g,'').toLowerCase();
-  const q=compact(s);
-  const eq=a=>compact(a)===q;
-  const inc=a=>compact(a).includes(q);
+  const q=compactStr(s);
+  const eq=a=>compactStr(a)===q;
+  const inc=a=>compactStr(a).includes(q);
   const hasCJK=/[\u4e00-\u9fff]/.test(s);
   for(const m of DATA_MATERIALS){
     if(eq(m.n)||eq(m.cas)||eq(m.en)) return m;
@@ -1646,7 +2038,6 @@ function lookupMaterial(raw){
     if(q.length>=2&&(m.alias||[]).some(inc)) return m;
     if(q.length>=3&&inc(m.en)) return m;
   }
-  /* 中文输入去掉常见后缀"粉/石/土"后再试一次，提高模糊命中率（如"石墨粉"→"石墨"） */
   if(hasCJK&&q.length>2){
     const cores=[];
     if(q.endsWith('粉')) cores.push(q.slice(0,-1));
@@ -1654,8 +2045,8 @@ function lookupMaterial(raw){
     if(q.endsWith('土')) cores.push(q.slice(0,-1));
     for(const core of cores){
       if(core.length<2) continue;
-      const eqc=a=>compact(a)===core;
-      const incc=a=>compact(a).includes(core);
+      const eqc=a=>compactStr(a)===core;
+      const incc=a=>compactStr(a).includes(core);
       for(const m of DATA_MATERIALS){
         if(eqc(m.n)||(m.alias||[]).some(eqc)) return m;
       }
@@ -1667,85 +2058,33 @@ function lookupMaterial(raw){
   }
   return null;
 }
-function isLatinQuery(s){
-  return /^[A-Za-z0-9][A-Za-z0-9\s\-\.\,\(\)\+/]*$/.test(s) && /[A-Za-z0-9]/.test(s);
-}
-let pubchemTimer=null;
-function pubchemLookup(q){
-  clearTimeout(pubchemTimer);
-  pubchemTimer=setTimeout(function(){
-    const info=document.getElementById('matInfo');
-    const url='https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/'+encodeURIComponent(q)+'/property/MolecularFormula,MolecularWeight,Density/JSON';
-    fetch(url,{signal:AbortSignal.timeout(8000)}).then(function(res){
-      if(!res.ok) throw new Error('http_'+res.status);
-      return res.json();
-    }).then(function(j){
-      const arr=(j.PropertyTable&&j.PropertyTable.Properties)||[];
-      const p=arr[0];
-      if(!p) throw new Error('no_prop');
-      const parts=[];
-      if(p.MolecularFormula) parts.push('分子式 '+p.MolecularFormula);
-      if(p.MolecularWeight) parts.push('分子量 '+p.MolecularWeight);
-      if(p.Density) parts.push('密度 '+p.Density+' g/cm³');
-      info.innerHTML=(parts.length?parts.join(' · '):'查询到PubChem数据')+' <span class="srcmark">来自PubChem在线查询</span>';
-      info.classList.add('show');
-    }).catch(function(){ info.innerHTML=''; info.classList.remove('show'); });
-  },600);
-}
-function autoMatchMaterial(){
-  const inp=document.getElementById('matName').value.trim();
-  const tip=document.getElementById('autoTip');
-  const info=document.getElementById('matInfo');
-  if(!inp){ tip.style.display='none'; info.innerHTML=''; info.classList.remove('show'); return; }
-  const hit=lookupMaterial(inp);
-  if(hit){
-    const catSel=document.getElementById('matCat');
-    if(catSel&&hit.cat) catSel.value=hit.cat;
-    TAGS.forEach(t=>setTag(t.id,false));
-    (hit.tags||[]).forEach(t=>setTag(t,true));
-    info.innerHTML='密度'+hit.den+'g/cm³ · 莫氏硬度'+hit.hard+' · 含水量'+hit.moist+'%';
-    info.classList.add('show');
-    tip.style.display='block'; tip.textContent='已根据物料库自动匹配，可手动调整';
-  } else {
-    TAGS.forEach(t=>setTag(t.id,false));
-    info.innerHTML=''; info.classList.remove('show');
-    tip.style.display='block'; tip.textContent='物料库暂无该物料，可手动选择类别与特性';
-    if(isLatinQuery(inp)) pubchemLookup(inp);
-  }
+
+function setSwitch(k,on){
+  const row=chipsEl.querySelector('.switch-row[data-k="'+k+'"]');
+  if(row) row.classList.toggle('on',!!on);
 }
 
-/* ---------- 目→微米 对照表（ASTM E11） ---------- */
+matEl.addEventListener('input', () => {
+  const val = matEl.value.trim();
+  if(!val) return;
+  const hit = lookupMaterial(val);
+  if (hit) {
+    const cv = CAT_TO_VALUE[hit.cat] || 'other';
+    if(catEl.value===''||!catEl.value) catEl.value = cv;
+    [...chipsEl.querySelectorAll('.switch-row')].forEach(r=>r.classList.remove('on'));
+    (hit.tags || []).forEach(t => { const k=TAG_SWITCH[t]; if(k) setSwitch(k,true); });
+  }
+});
+
+/* ============ v5 工具函数 ============ */
+function parseNum(s){ if(s==null||s==='') return null; const m=String(s).replace(/,/g,'').match(/(\d+(?:\.\d+)?)/); return m?parseFloat(m[1]):null; }
+
 const MESH_UM={10:2000,16:1180,20:850,30:600,40:425,50:300,60:250,70:212,80:180,100:150,120:125,140:106,170:90,200:75,230:63,270:53,325:45,400:38,500:25,635:20,800:15,1000:13,1250:10,2500:5,5000:2.5};
 function meshToUm(mesh){
   if(MESH_UM[mesh]) return MESH_UM[mesh];
   return 15000/mesh;
 }
-function updateHint(){
-  const unit=document.getElementById('sizeUnit').value;
-  const val=document.getElementById('sizeVal').value;
-  const hint=document.getElementById('meshHint');
-  if(unit==='mesh'&&val){
-    const um=meshToUm(parseFloat(val));
-    hint.textContent='≈ '+um.toFixed(um>=1?1:2)+' μm（美式标准 ASTM E11）';
-  } else {
-    hint.textContent='';
-  }
-}
 
-/* ---------- 解析工具 ---------- */
-function parseNum(s){ if(s==null||s==='') return null; const m=String(s).replace(/,/g,'').match(/(\d+(?:\.\d+)?)/); return m?parseFloat(m[1]):null; }
-
-/* 目标粒度：根据特征值+数值+单位返回 {key, um}；mesh自动换算 */
-function parseTargetSize(){
-  const key=document.getElementById('sizeKey').value;
-  const val=parseNum(document.getElementById('sizeVal').value);
-  const unit=document.getElementById('sizeUnit').value;
-  if(val==null) return null;
-  if(unit==='mesh') return {key, um:meshToUm(val), mesh:val};
-  return {key, um:val, mesh:null};
-}
-
-/* 设备粒度范围：返回 {type:'D97'|'D50'|'generic', ranges:[{min,max}]} */
 function parseDevSizeRanges(s){
   if(!s) return {type:'generic',ranges:[]};
   const out=[];
@@ -1761,7 +2100,6 @@ function parseDevSizeRanges(s){
   return {type:'generic',ranges:out};
 }
 
-/* 设备产能：范围+离散值，统一 kg/h（先提范围，剔除后提取离散档位，避免重复匹配） */
 function parseDevCaps(s){
   if(!s) return {ranges:[],values:[]};
   const ranges=[], values=[];
@@ -1785,7 +2123,6 @@ function parseDevCaps(s){
   return {ranges,values};
 }
 
-/* 设备硬度上限：从特性字段提取 */
 function devHardnessMax(feat){
   if(!feat) return null;
   let m=feat.match(/莫氏硬度\s*(\d+(?:\.\d+)?)\s*以下/);
@@ -1795,7 +2132,6 @@ function devHardnessMax(feat){
   return null;
 }
 
-/* 特性标签匹配：返回 {hit:true|false|null, note} */
 function matchTag(dev, tag){
   const feat=dev.feat||'', mat=dev.mat||'', oth=dev.oth||'';
   const all=(feat+' '+mat+' '+oth);
@@ -1850,155 +2186,14 @@ function matchTag(dev, tag){
       if(/GMP|FDA|医药|食品/.test(all)) return {hit:true,note:'设备可按GMP/FDA标准制造，适合医药食品'};
       return {hit:null,note:'数据库未标注GMP/食品医药配置'};
     }
+    case 'ex':{
+      if(/防爆|爆炸|易燃|可燃|粉尘爆炸/.test(all)) return {hit:true,note:'设备具备防爆/密闭惰性设计'};
+      return {hit:null,note:'数据库未标注防爆配置'};
+    }
   }
   return {hit:null,note:'无法校验'};
 }
 
-/* ---------- 主选型 ---------- */
-function runSelect(){
-  const name=document.getElementById('matName').value.trim();
-  const cat=document.getElementById('matCat').value.trim();
-  const capStr=document.getElementById('capacity').value.trim();
-  const sizeInfo=parseTargetSize();
-
-  if(!cat){ alert('请先选择物料类别'); return; }
-  if(capStr===''&&sizeInfo==null){ alert('请至少输入目标产能或目标粒度之一'); return; }
-
-  const targetCap=parseNum(capStr);
-  const selTags=getSelTags();
-
-  const results=[];
-  for(const dev of DATA){
-    const mat=dev.mat||'';
-    // 1. 类别匹配
-    let catHit=false, catNote='';
-    if(mat.includes(cat)){ catHit=true; catNote='类别命中：'+cat; }
-    else { catNote='类别未命中：设备适用'+mat; }
-    let nameHit=false;
-    if(name && mat.includes(name)){ nameHit=true; catNote+='（物料名"'+name+'"命中）'; }
-
-    // 2. 粒度匹配
-    let sizeScore=0, sizeNote='未校验';
-    if(sizeInfo){
-      const rs=parseDevSizeRanges(dev.size);
-      if(rs.ranges.length===0){ sizeNote='数据库未标注该设备粒度范围'; }
-      else{
-        // 特征值 → 期望范围类型
-        const wantD97 = ['D97','D99','D100'].includes(sizeInfo.key);
-        let use=rs;
-        if(wantD97 && rs.type==='D50'){ use=rs; sizeNote='数据库仅标注D50范围，按D50近似比对'; }
-        else if(!wantD97 && rs.type==='D97'){ use=rs; sizeNote='数据库仅标注D97范围，按D97近似比对'; }
-        else if(!wantD97 && rs.type==='D50'){ sizeNote='按'+sizeInfo.key+'比对D50范围'; }
-        else if(wantD97 && rs.type==='D97'){ sizeNote='按'+sizeInfo.key+'比对D97范围'; }
-        let best=null;
-        for(const r of use.ranges){
-          if(sizeInfo.um>=r.min&&sizeInfo.um<=r.max){ best={score:1,note:sizeNote+sizeInfo.um+'μm 在'+r.min+'~'+r.max+'μm范围内'}; break; }
-        }
-        if(!best){
-          let minGap=Infinity, gapNote='';
-          for(const r of use.ranges){
-            if(sizeInfo.um<r.min){ const g=(r.min-sizeInfo.um)/r.min; if(g<minGap){minGap=g; gapNote='低于该设备最低粒度'+r.min+'μm';} }
-            else if(sizeInfo.um>r.max){ const g=(sizeInfo.um-r.max)/r.max; if(g<minGap){minGap=g; gapNote='高于该设备最高粒度'+r.max+'μm';} }
-          }
-          if(minGap<0.5){ best={score:0.5,note:sizeNote+'目标粒度接近：'+gapNote}; }
-          else if(minGap<1.0){ best={score:0.2,note:sizeNote+'目标粒度偏差较大：'+gapNote}; }
-          else { best={score:0,note:sizeNote+'目标粒度不匹配：'+gapNote}; }
-        }
-        sizeScore=best.score; sizeNote=best.note;
-      }
-    }
-
-    // 3. 产能匹配（kg/h）
-    let capScore=0, capNote='未校验';
-    if(targetCap!=null){
-      const caps=parseDevCaps(dev.cap);
-      if(caps.ranges.length===0&&caps.values.length===0){ capNote='数据库未标注该设备产能'; }
-      else{
-        let hit=false, bestGap=Infinity, bestNote='';
-        for(const r of caps.ranges){ if(targetCap>=r.min&&targetCap<=r.max){hit=true; bestNote='目标产能'+targetCap+'kg/h 在'+r.min+'~'+r.max+'kg/h范围内'; break;} }
-        if(!hit){
-          for(const r of caps.ranges){
-            if(targetCap<r.min){ const g=(r.min-targetCap)/r.min; if(g<bestGap){bestGap=g; bestNote='低于该系列产能下限'+r.min+'kg/h';} }
-            else if(targetCap>r.max){ const g=(targetCap-r.max)/r.max; if(g<bestGap){bestGap=g; bestNote='高于该系列产能上限'+r.max+'kg/h';} }
-          }
-          if(caps.values.length){
-            for(const v of caps.values){ const g=Math.abs(targetCap-v)/v; if(g<bestGap){bestGap=g; bestNote='接近离散产能档位'+v+'kg/h';} }
-          }
-          if(bestGap<0.5) capScore=0.5;
-          else if(bestGap<1.0) capScore=0.2;
-          else capScore=0;
-          capNote=bestNote;
-        } else { capScore=1; capNote=bestNote; }
-      }
-    }
-
-    // 4. 特性标签匹配（细化展示）
-    let featHit=0, featUnknown=0, featNotes=[];
-    if(selTags.length){
-      for(const t of selTags){
-        const r=matchTag(dev,t);
-        if(r.hit===true){featHit++; featNotes.push({ok:1,note:t.label+'：'+r.note});}
-        else if(r.hit===null){featUnknown++; featNotes.push({ok:2,note:t.label+'：'+r.note});}
-        else {featNotes.push({ok:0,note:t.label+'：'+r.note});}
-      }
-    }
-    const featScore=selTags.length? (featHit*1+featUnknown*0.5)/selTags.length : 1;
-
-    // 5. 分级精度（粒度分布窄度/分级精度）：带分级轮/分级转子/自分级/流化床结构加分
-    let clsScore=0, clsNote='未评估';
-    const devTxt5=(dev.c+' '+dev.n+' '+dev.feat+' '+dev.prin+' '+dev.sell+' '+dev.oth);
-    if(/MQPW|MQW|分级轮|分级转子|分级涡轮|带分级/.test(devTxt5)){ clsScore=1; clsNote='带分级轮/分级转子，粒度分布窄可控'; }
-    else if(/自分级|无转动部件/.test(devTxt5)){ clsScore=0.7; clsNote='自分级结构，粒度分布较窄'; }
-    else if(/流化床/.test(devTxt5)){ clsScore=0.7; clsNote='流化床结构，分级与粉碎协同'; }
-    else if(/分级/.test(devTxt5)){ clsScore=0.5; clsNote='含分级功能，粒度可控'; }
-    else { clsScore=0.2; clsNote='无独立分级结构，粒度分布偏宽'; }
-
-    // 6. 纯度（物料自碰撞/无机械磨损）：适配电池级高纯物料
-    let purScore=0, purNote='未评估';
-    if(/自碰撞|无机械磨损|无介质|物料碰撞/.test(devTxt5)){ purScore=1; purNote='物料自碰撞粉碎，无机械磨损、纯度高'; }
-    else if(/陶瓷|零金属|无金属|无铁/.test(devTxt5)){ purScore=0.8; purNote='陶瓷/无金属结构，避免金属污染'; }
-    else if(/气流/.test(dev.c)){ purScore=0.6; purNote='气流粉碎无介质污染，纯度较好'; }
-    else { purScore=0.2; purNote='机械冲击粉碎，存在磨损污染风险'; }
-
-    // 综合评分：类别35 + 粒度20 + 产能15 + 特性10 + 分级精度10 + 纯度10
-    const total=Math.round((catHit?35:0)+(sizeScore*20)+(capScore*15)+(featScore*10)+(clsScore*10)+(purScore*10));
-    const reasons=[];
-    reasons.push({ok:catHit?1:0, note:catNote});
-    if(sizeNote!=='未校验') reasons.push({ok:sizeScore>=1?1:(sizeScore>0?2:0), note:sizeNote});
-    if(capNote!=='未校验') reasons.push({ok:capScore>=1?1:(capScore>0?2:0), note:capNote});
-    reasons.push({ok:clsScore>=0.7?1:(clsScore>0?2:0), note:clsNote});
-    reasons.push({ok:purScore>=0.7?1:(purScore>0?2:0), note:purNote});
-    for(const f of featNotes) reasons.push({ok:f.ok,note:f.note});
-
-    results.push({dev, total, catHit, sizeScore, capScore, featScore, clsScore, purScore, reasons});
-  }
-
-  results.sort((a,b)=>b.total-a.total);
-  const top=results[0];
-  const hasGood=top && top.total>=50 && top.catHit;
-
-  const summary=document.getElementById('summary');
-  const noMatch=document.getElementById('noMatch');
-  const box=document.getElementById('results');
-  box.innerHTML=''; noMatch.innerHTML='';
-
-  let showList;
-  if(!hasGood){
-    noMatch.innerHTML='<div class="nomatch"><b>未找到完全匹配的设备。</b> 已按接近程度给出最接近候选，并逐项提示差异原因。可尝试放宽粒度/产能范围或调整物料类别后重新选型。</div>';
-    summary.textContent='候选设备 '+Math.min(3,results.length)+' 台（最接近候选，按综合匹配度排序）';
-    showList=results.slice(0,3);
-  } else {
-    summary.textContent='共 '+results.length+' 个系列参与匹配，为您推荐前 3 名（按综合匹配度从高到低）。';
-    const good=results.filter(r=>r.total>=50 && r.catHit);
-    showList=good.slice(0,3);
-    if(showList.length===0){ noMatch.innerHTML='<div class="nomatch">无匹配度≥50%的完全匹配项，已展示最接近候选。</div>'; showList=results.slice(0,3); }
-  }
-  renderList(showList, box, !hasGood, targetCap, sizeInfo);
-  document.getElementById('resultCard').style.display='block';
-  document.getElementById('resultCard').scrollIntoView({behavior:'smooth'});
-}
-
-/* ---------- 具体型号解析与推荐 ---------- */
 function splitModels(mField){
   if(!mField) return [];
   const raw=String(mField).split(/[;；]/)
@@ -2008,7 +2203,6 @@ function splitModels(mField){
   return good;
 }
 
-/* 解析型号级参数："FL200:100-300kg/h;FL300:300-1000" 或 "100-300kg/h"（无型号前缀） */
 function parseModelParams(capField, sizeField, models){
   const caps={}, sizes={};
   let capByModel=false, sizeByModel=false;
@@ -2030,7 +2224,6 @@ function parseModelParams(capField, sizeField, models){
   return {caps, sizes, capByModel, sizeByModel};
 }
 
-/* 选具体型号：粒度/产能命中优先取综合最优；无型号级参数时按产能接近度 */
 function pickModel(dev, targetCap, sizeInfo){
   const models=splitModels(dev.m);
   if(!models.length) return {model:null, note:'该系列未提供具体型号，请咨询工程师'};
@@ -2072,7 +2265,6 @@ function pickModel(dev, targetCap, sizeInfo){
   return {model:best.model, note};
 }
 
-/* 去除数值/单位/括号片段，用于理由提炼 */
 function cleanPhrase(s){
   if(!s) return '';
   return String(s)
@@ -2084,7 +2276,6 @@ function cleanPhrase(s){
     .trim();
 }
 
-/* 卖点清洗：按标点切句，丢弃含数字或工程符号的残缺句，保留干净自然句 */
 function cleanSell(sell){
   if(!sell) return '';
   return String(sell)
@@ -2094,7 +2285,6 @@ function cleanSell(sell){
     .join('，');
 }
 
-/* 一行推荐理由：按排名用"最符合/有发展/性价比"关键词区分推荐取向 */
 function makeReason(it, rank){
   const d=it.dev;
   const devTxt=(d.c+' '+d.n+' '+d.feat+' '+d.sell+' '+d.prin);
@@ -2115,24 +2305,189 @@ function makeReason(it, rank){
   return kw+'：'+body+'，'+orient+'。';
 }
 
-/* 结果渲染：序号 + 分类 + 产品名 + 具体型号 + 理由（不暴露内部参数） */
-function renderList(items, box, isCandidate, targetCap, sizeInfo){
-  items.forEach((it,idx)=>{
-    const d=it.dev;
-    const pm=pickModel(d, targetCap, sizeInfo);
-    const model=pm.model ? pm.model : (d.m? '（具体型号请咨询工程师）' : '型号待定');
-    box.insertAdjacentHTML('beforeend',
-      '<div class="item"><div class="rank">'+(idx+1)+'</div><div style="flex:1;min-width:0">'+
-        '<div class="badge">'+esc(d.c)+'</div>'+
-        '<div class="nm">'+esc(d.n)+'</div>'+
-        '<div class="md">推荐型号：'+esc(model)+'</div>'+
-        '<div class="reasons">推荐理由：'+esc(makeReason(it,idx+1))+'</div>'+
-        (pm.note? '<div class="subnote">'+esc(pm.note)+'</div>':'')+
-        (isCandidate? '<div class="subnote">候选设备，存在未完全满足项，请结合工程师建议评估</div>':'')+
-      '</div></div>');
-  });
-}
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ============ 主选型（v5） ============ */
+function evaluate(){
+  const name=matEl.value.trim();
+  const catVal=catEl.value;
+  const cat=CAT_DISPLAY[catVal] || catVal;
+  const aliases=CAT_ALIAS[catVal] || [cat];
+  if(!catVal){ outEl.innerHTML='<div class="card" style="padding:0;"><div class="empty-state"><h3>请选择物料类别</h3><p>先选择类别后再执行评估。</p></div></div>'; return; }
+  if(!(actualSizeUm>0)){
+    outEl.innerHTML='<div class="card" style="padding:0;"><div class="empty-state"><h3>参数异常</h3><p>请检查粒度滑动条。</p></div></div>';
+    return;
+  }
+  const cap=targetCap;
+  const sizeInfo={key: basis, um: actualSizeUm};
+  const attrs=[...chipsEl.querySelectorAll('.switch-row.on')].map(r=>r.dataset.k);
+  const selTags=attrs.map(k=>({id:SWITCH_TAG[k]||k, label:TAG_LABEL[k]||k}));
+
+  const results=[];
+  for(const dev of DATA){
+    const mat=dev.mat||'';
+    // 1. 类别匹配（同义词任一命中）
+    let catHit=false, catNote='';
+    if(aliases.some(a=>a && mat.includes(a))){ catHit=true; catNote='类别命中：'+cat; }
+    else { catNote='类别未命中：设备适用'+mat; }
+    let nameHit=false;
+    if(name && mat.includes(name)){ nameHit=true; catNote+='（物料名"'+name+'"命中）'; }
+
+    // 2. 粒度匹配
+    let sizeScore=0, sizeNote='未校验';
+    if(sizeInfo){
+      const rs=parseDevSizeRanges(dev.size);
+      if(rs.ranges.length===0){ sizeNote='数据库未标注该设备粒度范围'; }
+      else{
+        const wantD97 = ['D97','D99','D100'].includes(sizeInfo.key);
+        let use=rs;
+        if(wantD97 && rs.type==='D50'){ use=rs; sizeNote='数据库仅标注D50范围，按D50近似比对'; }
+        else if(!wantD97 && rs.type==='D97'){ use=rs; sizeNote='数据库仅标注D97范围，按D97近似比对'; }
+        else if(!wantD97 && rs.type==='D50'){ sizeNote='按'+sizeInfo.key+'比对D50范围'; }
+        else if(wantD97 && rs.type==='D97'){ sizeNote='按'+sizeInfo.key+'比对D97范围'; }
+        let best=null;
+        for(const r of use.ranges){
+          if(sizeInfo.um>=r.min&&sizeInfo.um<=r.max){ best={score:1,note:sizeNote+sizeInfo.um+'μm 在'+r.min+'~'+r.max+'μm范围内'}; break; }
+        }
+        if(!best){
+          let minGap=Infinity, gapNote='';
+          for(const r of use.ranges){
+            if(sizeInfo.um<r.min){ const g=(r.min-sizeInfo.um)/r.min; if(g<minGap){minGap=g; gapNote='低于该设备最低粒度'+r.min+'μm';} }
+            else if(sizeInfo.um>r.max){ const g=(sizeInfo.um-r.max)/r.max; if(g<minGap){minGap=g; gapNote='高于该设备最高粒度'+r.max+'μm';} }
+          }
+          if(minGap<0.5){ best={score:0.5,note:sizeNote+'目标粒度接近：'+gapNote}; }
+          else if(minGap<1.0){ best={score:0.2,note:sizeNote+'目标粒度偏差较大：'+gapNote}; }
+          else { best={score:0,note:sizeNote+'目标粒度不匹配：'+gapNote}; }
+        }
+        sizeScore=best.score; sizeNote=best.note;
+      }
+    }
+
+    // 3. 产能匹配（kg/h）
+    let capScore=0, capNote='未校验';
+    if(cap!=null){
+      const caps=parseDevCaps(dev.cap);
+      if(caps.ranges.length===0&&caps.values.length===0){ capNote='数据库未标注该设备产能'; }
+      else{
+        let hit=false, bestGap=Infinity, bestNote='';
+        for(const r of caps.ranges){ if(cap>=r.min&&cap<=r.max){hit=true; bestNote='目标产能'+cap+'kg/h 在'+r.min+'~'+r.max+'kg/h范围内'; break;} }
+        if(!hit){
+          for(const r of caps.ranges){
+            if(cap<r.min){ const g=(r.min-cap)/r.min; if(g<bestGap){bestGap=g; bestNote='低于该系列产能下限'+r.min+'kg/h';} }
+            else if(cap>r.max){ const g=(cap-r.max)/r.max; if(g<bestGap){bestGap=g; bestNote='高于该系列产能上限'+r.max+'kg/h';} }
+          }
+          if(caps.values.length){
+            for(const v of caps.values){ const g=Math.abs(cap-v)/v; if(g<bestGap){bestGap=g; bestNote='接近离散产能档位'+v+'kg/h';} }
+          }
+          if(bestGap<0.5) capScore=0.5;
+          else if(bestGap<1.0) capScore=0.2;
+          else capScore=0;
+          capNote=bestNote;
+        } else { capScore=1; capNote=bestNote; }
+      }
+    }
+
+    // 4. 特性标签匹配
+    let featHit=0, featUnknown=0;
+    if(selTags.length){
+      for(const t of selTags){
+        const r=matchTag(dev,t);
+        if(r.hit===true) featHit++;
+        else if(r.hit===null) featUnknown++;
+      }
+    }
+    const featScore=selTags.length? (featHit*1+featUnknown*0.5)/selTags.length : 1;
+
+    // 5. 分级精度
+    let clsScore=0, clsNote='未评估';
+    const devTxt5=(dev.c+' '+dev.n+' '+dev.feat+' '+dev.prin+' '+dev.sell+' '+dev.oth);
+    if(/MQPW|MQW|分级轮|分级转子|分级涡轮|带分级/.test(devTxt5)){ clsScore=1; clsNote='带分级轮/分级转子，粒度分布窄可控'; }
+    else if(/自分级|无转动部件/.test(devTxt5)){ clsScore=0.7; clsNote='自分级结构，粒度分布较窄'; }
+    else if(/流化床/.test(devTxt5)){ clsScore=0.7; clsNote='流化床结构，分级与粉碎协同'; }
+    else if(/分级/.test(devTxt5)){ clsScore=0.5; clsNote='含分级功能，粒度可控'; }
+    else { clsScore=0.2; clsNote='无独立分级结构，粒度分布偏宽'; }
+
+    // 6. 纯度
+    let purScore=0, purNote='未评估';
+    if(/自碰撞|无机械磨损|无介质|物料碰撞/.test(devTxt5)){ purScore=1; purNote='物料自碰撞粉碎，无机械磨损、纯度高'; }
+    else if(/陶瓷|零金属|无金属|无铁/.test(devTxt5)){ purScore=0.8; purNote='陶瓷/无金属结构，避免金属污染'; }
+    else if(/气流/.test(dev.c)){ purScore=0.6; purNote='气流粉碎无介质污染，纯度较好'; }
+    else { purScore=0.2; purNote='机械冲击粉碎，存在磨损污染风险'; }
+
+    // 综合评分：类别35 + 粒度20 + 产能15 + 特性10 + 分级精度10 + 纯度10
+    const total=Math.round((catHit?35:0)+(sizeScore*20)+(capScore*15)+(featScore*10)+(clsScore*10)+(purScore*10));
+    results.push({dev, total, catHit, sizeScore, capScore, featScore, clsScore, purScore});
+  }
+
+  results.sort((a,b)=>b.total-a.total);
+  const top=results[0];
+  const hasGood=top && top.total>=50 && top.catHit;
+  let showList;
+  if(hasGood){
+    const good=results.filter(r=>r.total>=50 && r.catHit);
+    showList=good.slice(0,3);
+  }
+  if(!showList || !showList.length) showList=results.slice(0,3);
+  renderTop3(showList, {cap, sizeInfo, attrs, isCandidate:!hasGood});
+}
+
+/* ============ 结果渲染（复用 1.html CSS 类） ============ */
+function renderTop3(items, ctx){
+  if(!items.length){
+    outEl.innerHTML = `
+      <div class="card" style="padding: 0;">
+        <div class="empty-state">
+          <h3>未找到匹配机型</h3>
+          <p>当前工艺组合超出常规物理界限。<br>建议联系工程师安排物料小试后定制专机。</p>
+        </div>
+      </div>`;
+    return;
+  }
+
+  let warningHtml = '';
+  if (ctx.attrs.includes('quartz') || ctx.attrs.includes('hard')) {
+    warningHtml += `<div class="res-warn"><b>工程师警告：</b><br>物料磨蚀性极强，严禁使用普通钢衬板。<br>推荐配置：<b>高铬合金耐磨衬板 + 高铬钢球 + 管道除铁器</b>。</div>`;
+  }
+  if (ctx.attrs.includes('ex')) {
+    warningHtml += `<div class="res-warn"><b>防爆强制要求：</b><br>物料具有易燃易爆属性，系统必须配备<b>防爆电机、全密闭惰性气体（氮气）循环、静电接地及在线氧含量监测</b>。</div>`;
+  }
+
+  const cards = items.map((it,idx)=>{
+    const d=it.dev;
+    const pm=pickModel(d, ctx.cap, ctx.sizeInfo);
+    const model=pm.model ? pm.model : (d.m? '（具体型号请咨询工程师）' : '型号待定');
+    const pct=Math.min(99, Math.max(35, Math.round(it.total)));
+    const tagCls = pct>=80?'tag-green':(pct>=60?'tag-yellow':'tag-red');
+    const rs=parseDevSizeRanges(d.size);
+    const sizeTxt = rs.ranges.length ? (rs.type==='D97'?'D97 ': rs.type==='D50'?'D50 ':'') + rs.ranges[0].min+'–'+rs.ranges[0].max+' µm' : '见产品样册';
+    const candNote = ctx.isCandidate ? `<div class="res-opt"><b>提示</b><br>候选设备，存在未完全满足项，请结合工程师建议评估。</div>` : '';
+    return `
+      <div class="card">
+        <div class="result-tag ${tagCls}">${pct}%</div>
+        <div class="card-body" style="padding-top: 24px;">
+          <div class="card-head" style="padding: 0 0 8px;">
+            <div class="card-title-wrap"><span class="card-num">Top ${idx+1}</span><span class="card-title">${esc(d.n)}</span></div>
+          </div>
+          <div class="res-sub-title">${esc(d.c)} · ${esc(model)}</div>
+          <div class="res-grid">
+            <div class="res-item"><span>推荐型号</span><b>${esc(model)}</b></div>
+            <div class="res-item"><span>可达粒度</span><b>${sizeTxt}</b></div>
+            <div class="res-item" style="grid-column: 1 / -1;"><span>推荐理由</span><b>${esc(makeReason(it,idx+1))}</b></div>
+          </div>
+          ${pm.note? `<div class="res-opt"><b>备注</b><br>${esc(pm.note)}</div>`:''}
+          ${candNote}
+        </div>
+      </div>`;
+  }).join('');
+
+  outEl.innerHTML = `<div class="res-header">智能匹配结果</div>${cards}${warningHtml}`;
+}
+
+$('go').addEventListener('click', evaluate);
+
+// 初始化颜色
+capDisplay.style.color = getDynamicColor(500, 10, 10000);
+sizeDisplay.style.color = getDynamicColor(45, 1, 500);
 </script>
 </body>
 </html>
