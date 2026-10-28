@@ -134,7 +134,8 @@
     transition: border-color .15s;
   }
   .inline-input:focus { border-bottom-color: var(--vermilion); }
-  .inline-input::placeholder { color: #C2C3BD; font-weight: 400; }
+  /* 占位符按提示文字处理：若沿用 38px 读数尺寸，空字段会被误读成已有数值 */
+  .inline-input::placeholder { color: #C2C3BD; font-size: 15px; font-weight: 400; letter-spacing: .02em; }
 
   .slider-unit { font-size: 12.5px; color: var(--muted); font-weight: 400; letter-spacing: .05em; margin-left: 0; }
 
