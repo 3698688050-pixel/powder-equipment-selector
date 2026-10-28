@@ -235,7 +235,7 @@ function sizeToUm(txt) {
 
 /**
  * 把页面内联的 DATA_CASES 行还原成与 loadCases() 同样的案例对象。
- * 行格式：[站点,标题,行业,物料,产能kg/h,入料μm,成品μm,粒度基准,设备族,原始族标签]
+ * 行格式：[站点,标题,行业,物料,产能kg/h,入料μm,成品μm,粒度基准,设备族,原始族标签,时间YYYY-MM]
  * 站点 'C'/'E'；设备族是 ALPA 自己的族标签（+ 连接），已经等于 SUPERS 口径。
  */
 function casesFromRows(rows) {
@@ -247,7 +247,7 @@ function casesFromRows(rows) {
       ind: String(r[2] || '').replace(/应用案例$/, '').trim(), famLabel: r[9] || '',
       material: r[3], capTxt: '', cap: +r[4] || 0, feed: +r[5] || 0,
       prodTxt: '', prod: +r[6] || 0, basis: r[7] || 'D97', supers,
-      labelSource: r[9] ? 'list-tag + title' : 'title-inferred'
+      date: r[10] || '', labelSource: r[9] ? 'list-tag + title' : 'title-inferred'
     });
   });
   return out.filter(c => c.prod > 0 && c.cap > 0 && c.supers.size);
@@ -259,7 +259,7 @@ function loadCases() {
   const en = fs.readFileSync(path.join(ROOT, 'data/cases-en-64.tsv'), 'utf8').trim().split('\n').slice(1).map(l => l.split('\t'));
   const out = [];
   for (const r of cn) {
-    const [, title, ind, fam, material, capTxt, , , feedUm, prodTxt, prodUm] = r;
+    const [, title, ind, fam, material, capTxt, , , feedUm, prodTxt, prodUm, , date] = r;
     const supers = famToSupers(fam, title);
     out.push({
       // 中文站的行业列带着「应用案例」后缀（"电池材料应用案例"），不剥掉就落不进 IND2CLASS，
@@ -267,11 +267,12 @@ function loadCases() {
       site: 'CN', id: r[0], title, ind: ind.replace(/\s*\/\s*$/, '').replace(/应用案例$/, '').trim(), famLabel: fam,
       material, capTxt, cap: +capToKgH(capTxt) || 0, feed: +feedUm || 0,
       prodTxt, prod: +prodUm || 0, basis: 'D' + (String(prodTxt).match(/D(\d+)/) || [, '97'])[1],
-      supers, labelSource: fam && fam !== '未标注' ? 'list-tag + title' : 'title-inferred'
+      supers, date: String(date || '').trim(),
+      labelSource: fam && fam !== '未标注' ? 'list-tag + title' : 'title-inferred'
     });
   }
   for (const r of en) {
-    const [slug, tax, title, material, capTxt, feedTxt, prodTxt] = r;
+    const [slug, tax, title, material, capTxt, feedTxt, prodTxt, , date] = r;
     const supers = new Set();
     for (const t of tax.split('|')) if (EN_FAM[t]) { for (const s of String(EN_FAM[t]).split('+')) supers.add(s); }
     if (supers.has('改性') && !supers.has('机械磨') && /grinding|mill/.test(tax)) { /* 保持只标改性 */ }
@@ -279,7 +280,7 @@ function loadCases() {
       site: 'EN', id: slug, title, ind: (tax.split('|').find(t => !EN_FAM[t]) || 'other'), famLabel: tax,
       material, capTxt, cap: +capToKgH(capTxt) || 0, feed: +sizeToUm(feedTxt) || 0,
       prodTxt, prod: +sizeToUm(prodTxt) || 0, basis: 'D' + (String(prodTxt).match(/D(\d+)/) || [, '97'])[1],
-      supers, labelSource: 'taxonomy-tag'
+      supers, date: String(date || '').trim(), labelSource: 'taxonomy-tag'
     });
   }
   return out.filter(c => c.prod > 0 && c.cap > 0 && c.supers.size);

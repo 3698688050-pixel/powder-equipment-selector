@@ -25,12 +25,14 @@ const rows = cases.map(c => [
   c.prod || 0,
   c.basis,
   [...c.supers].join('+'),
-  c.famLabel || ''
+  c.famLabel || '',
+  c.date || ''
 ]);
 
 const block = `${START}
 // 案例库：ALPA 官网中文 99 例（含 6 例列表页无设备族标签、按标题弱标注）+ 英文站 64 例。
-// 字段：[站点, 标题, 行业, 物料, 产能kg/h, 入料μm, 成品μm, 粒度基准, 设备族, 原始族标签]
+// 字段：[站点, 标题, 行业, 物料, 产能kg/h, 入料μm, 成品μm, 粒度基准, 设备族, 原始族标签, 时间YYYY-MM]
+// 时间口径见 tools/backfill-case-dates.js（官网案例页上线月份）。
 // 由 tools/build-cases-embed.js 生成，请勿手改；案例增补后重跑该脚本即可。
 const DATA_CASES=${JSON.stringify(rows)};
 const CASE_WEAK_N=${cases.filter(c => c.labelSource === 'title-inferred').length};
