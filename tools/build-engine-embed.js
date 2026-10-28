@@ -33,7 +33,7 @@ function bundle() {
 ;(function(){
   'use strict';
   var process = { env: {} };            // fit.js 用 process.env.NOBAND / NOBIG 做对照开关，线上恒为关闭
-  var _DOM = { DATA: DATA, DATA_MATERIALS: DATA_MATERIALS, CAT_ALIAS: CAT_ALIAS,
+  var _DOM = { DATA: DATA, DATA_MATERIALS: DATA_MATERIALS, CAT_ALIAS: CAT_ALIAS, CAT_ADJ: CAT_ADJ,
                SWITCH_TAG: SWITCH_TAG, TAG_SWITCH: TAG_SWITCH, DATA_CASES: DATA_CASES };
   var __mods = {}, __cache = {};
   function __req(name){

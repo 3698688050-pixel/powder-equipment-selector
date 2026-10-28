@@ -1,5 +1,5 @@
 /**
- * kb.js — 案例知识库 + 选型打分核（v7）
+ * kb.js — 案例知识库 + 选型打分核（v8）
  * 数据源：index.html 的 DATA / DATA_MATERIALS（设备库、物料库，只读不改）
  *         data/cases-*.tsv（官网案例，CN 99 训练 / EN 64 跨站留出）
  * 原则：任何打分项都是「对全体案例成立」的函数；不含按案例标题查表的记忆项。
@@ -27,6 +27,7 @@ function cut(name, endName) {
 const DATA = cut('DATA', 'DATA_MATERIALS');
 const MATS = cut('DATA_MATERIALS', 'CAT_DISPLAY');
 const CAT_ALIAS = cut('CAT_ALIAS', 'CAT_TO_VALUE');
+const CAT_ADJ = cut('CAT_ADJ', 'CATV');
 const SWITCH_TAG = cut('SWITCH_TAG', 'TAG_LABEL');
 const TAG_SWITCH = cut('TAG_SWITCH', 'matListEl');
 
@@ -287,9 +288,11 @@ function loadCases() {
 }
 
 // ---------- 物料 → 类别（弱先验，不用 35 分硬门槛） ----------
+// 案例行业标签 -> 打分类别。键必须逐字命中，漏一个标签就等于把整批案例降成 other（F 被压到 0.45）。
 const IND2CLASS = {
   '非金属矿': 'mineral', '电池材料': 'battery', '精细化工': 'chem', '食品/保健品/化妆品': 'food',
-  '建材及固废': 'waste', '高新材料': 'other', '医药': 'pharma', '粉末冶金': 'metal',
+  '食品添加剂': 'food', '建材及固废': 'waste', '高新材料': 'other',
+  '医药': 'pharma', '粉末冶金': 'metal', '能源': 'waste', '塑料/橡胶/胶黏剂': 'chem',
   '其他材料': 'other', '颜料/染料': 'chem', '环保脱硫': 'waste',
   'chemical': 'chem', 'minerals': 'mineral', 'battery-materials': 'battery', 'food-health-products': 'food',
   'medicine': 'pharma', 'architecture': 'waste', 'laboratory-equipment': 'other', 'laboratory': 'other',
@@ -355,6 +358,14 @@ function feats(c) {
   };
 }
 function MATCL(ind) { return IND2CLASS[ind] || IND2CLASS[String(ind).split(/\s*\/\s*/)[0]] || 'other'; }
+// 打分类别三档：本类关键词命中 1.0 / 邻类命中 0.7 / 完全不搭 0.45。
+// 原来只有 1.0 和 0.45 两档，等于把「医药与食品共用 GMP 产线」和「食品与烟气脱硫」当同一回事。
+function catHit(mat, cls) { return (CAT_ALIAS[cls] || []).some(a => a && mat.includes(a)); }
+function catTier(mat, cls, material) {
+  if (catHit(mat, cls) || (material && mat.includes(material))) return 1;
+  if ((CAT_ADJ[cls] || []).some(a => catHit(mat, a))) return 0.7;
+  return 0.45;
+}
 
 const SUPERS = ['气流磨', '机械磨', '分级', '球磨线', '改性', '实验室', '蒸汽'];
 function buildPrior(train) {
@@ -468,7 +479,7 @@ function familyFallback(train) {
 }
 
 module.exports = {
-  DATA, MATS, CAT_ALIAS, SWITCH_TAG, TAG_SWITCH, SUPERS, TAGRE, ALIAS,
+  DATA, MATS, CAT_ALIAS, CAT_ADJ, SWITCH_TAG, TAG_SWITCH, SUPERS, TAGRE, ALIAS,
   parseDevSizeRanges, parseDevCaps, parseModels, matchTag, devFamily, famToSupers, loadCases, casesFromRows,
-  findMat, caseTags, buildPrior, priorDist, familyFallback, familyMarginals, marginal, feats, MATCL, numOf, capToKgH, sizeToUm
+  findMat, caseTags, buildPrior, priorDist, familyFallback, familyMarginals, marginal, feats, MATCL, catTier, numOf, capToKgH, sizeToUm
 };

@@ -153,9 +153,9 @@ function score(dev, ctx, prior, trace) {
   let fh = 0, fu = 0;
   for (const t of ctx.tags) { const r = K.matchTag(dev, t); if (r === true) fh++; else if (r === null) fu++; }
   const E = ctx.tags.length ? (fh + fu * 0.5) / ctx.tags.length : 0.7;
-  // F 物料/行业弱先验
+  // F 物料/行业弱先验：本类命中 1.0 / 邻类 0.7 / 不搭 0.45（三档定义在 kb.js 的 catTier）
   const mat = dev.mat || '';
-  const F = ((K.CAT_ALIAS[ctx.cat] || []).some(a => a && mat.includes(a)) || (ctx.material && mat.includes(ctx.material))) ? 1 : 0.45;
+  const F = K.catTier(mat, ctx.cat, ctx.material);
   // G 工艺链
   const G = /闭路|串联|多级|一体|干燥|改性|循环|生产线|组合/.test((dev.sell || '') + (dev.prin || '')) ? 1 : 0.6;
   // H 分级精度
@@ -170,7 +170,7 @@ function score(dev, ctx, prior, trace) {
 
 function ctxOf(c) {
   return {
-    cat: K.CAT_ALIAS[K.MATCL(c.ind)] ? K.MATCL(c.ind) : K.MATCL(c.ind),
+    cat: K.MATCL(c.ind),
     material: String(c.material).split(/[、,，/]/)[0].trim(),
     // 案例成品粒度常标 D50/D90/D95/D99，直接和设备 D97 范围比会系统性偏细（D50 差 2.5 倍）。
     // 统一换算到 D97 当量再比：D90/D95 ×1.2，D50 ×2.5，D99/D100 ×0.9（方案 §3.4）。

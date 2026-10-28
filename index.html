@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>粉体预选型 v9</title>
+<title>粉体预选型 v10</title>
 <style>
   /* =========================================================
      锤子 OS / Smartisan 方向：纸白 · 墨 · 朱砂
@@ -342,6 +342,22 @@
   }
   .btn-ghost:hover { color: var(--vermilion); border-bottom-color: var(--vermilion); }
 
+  /* ── 公司名称：导出归属信息，随 v10 一起进纸面 ─────────────── */
+  .header-field { margin: 12px 0 0; }
+  .header h1 .company-tag {
+    font-family: var(--serif); font-size: 14px; font-weight: 400;
+    color: var(--muted); letter-spacing: .02em;
+  }
+  .header h1 .company-tag[hidden] { display: none; }
+  .field-error {
+    display: none; margin-top: 7px;
+    font-size: 12.5px; color: var(--vermilion); letter-spacing: .03em;
+  }
+  .field-error.on { display: block; }
+  .input-field.is-invalid { border-bottom-color: var(--vermilion); }
+  /* 未填公司名称却直接 Ctrl+P 时的纸面阻断提示 */
+  .print-block-note { display: none; }
+
   .page-foot {
     margin: 42px 0 0; padding-top: 12px; border-top: 1px solid var(--rule);
     font-size: 12px; color: var(--muted); letter-spacing: .04em;
@@ -362,8 +378,15 @@
       display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
       padding-bottom: 6px; border-bottom: 2px solid #000;
     }
+    .print-title { display: flex; align-items: baseline; gap: 2px; }
     .print-head b { font-family: var(--serif); font-size: 15pt; font-weight: 600; }
+    .print-company { font-family: var(--serif); font-size: 11.5pt; color: #000; }
     .print-meta { font-family: var(--num); font-size: 9.5pt; color: #333; text-align: right; }
+    /* 公司名称为空：推荐卡一律不进纸面，只留一条阻断说明 */
+    body.company-missing #top3 { display: none !important; }
+    body.company-missing #printCompany { display: none; }
+    body.company-missing .print-block-note { display: block; font-size: 11.5pt; line-height: 1.9; }
+    body.company-missing .print-block-note b { font-family: var(--serif); font-size: 12.5pt; }
     #out .card { margin-top: 16pt; break-inside: avoid; page-break-inside: avoid; }
   }
 
@@ -385,12 +408,23 @@
 
   <!-- 打印专用页眉：屏幕不显示，PDF 头部带工况，避免脱离上下文 -->
   <div class="print-only print-head">
-    <b>粉体预选型 v9</b>
+    <span class="print-title"><b>粉体预选型 v10</b><span class="print-company" id="printCompany"></span></span>
     <span class="print-meta" id="printMeta"></span>
   </div>
 
+  <div class="print-block-note" id="printBlockNote">
+    <b>公司名称未填写，本次打印 / 导出已阻断。</b>
+    请在页面顶部「公司名称」处填写后，再点「导出 PDF（前 3 名）」。
+  </div>
+
   <div class="header no-print">
-    <h1>粉体预选型<span class="ver">v9</span></h1>
+    <h1>粉体预选型<span class="ver">v10</span><span class="company-tag" id="companyTag" hidden></span></h1>
+    <div class="input-group header-field">
+      <label class="input-label" for="company">公司名称（导出 PDF 必填）</label>
+      <input id="company" class="input-field" type="text" placeholder="如 某某粉体科技有限公司"
+             autocomplete="off" spellcheck="false" aria-describedby="companyErr">
+      <div class="field-error" id="companyErr" role="alert"></div>
+    </div>
   </div>
 
   <!-- 01 基础信息 -->
@@ -2011,17 +2045,37 @@ const CAT_ALIAS = {
   chem:['化工','无机盐','颜料','染料','农药'],
   herb:['中药','植物','纤维','草本'],
   metal:['金属','冶金','合金'],
-  waste:['固废','粉煤灰','矿渣','废渣','煤矸石','建材'],
+  waste:['固废','粉煤灰','矿渣','废渣','煤矸石','煤','建材'],
   other:[]
 };
-/* 物料库中文类别 -> UI 类别 value */
+/* 物料库中文类别 -> UI 类别 value
+   注意：键必须与 DATA_MATERIALS.cat 的实际字符串逐字一致（含 / 与空格），
+   标错一个字符就会让整批物料掉进 other、F 项被压到 0.45。CATV() 负责兜底归一化。 */
 const CAT_TO_VALUE = {
   '电池材料':'battery','非金属矿':'mineral','化工':'chem','无机盐':'chem','颜料':'chem','染料':'chem','农药':'chem',
-  '医药':'pharma','原料药':'pharma','食品':'food','保健品':'food','中药':'herb','植物纤维':'herb',
+  '医药':'pharma','原料药':'pharma','食品':'food','保健品':'food','食品添加剂':'food',
+  '中药':'herb','植物纤维':'herb',
   '金属粉末':'metal','冶金':'metal','矿物':'mineral','耐火材料':'hard','磨料':'hard','陶瓷':'hard',
-  '固废':'waste','粉煤灰':'waste','其他':'other','新材料':'other','塑料橡胶胶黏剂':'chem',
-  '建材':'waste','烟气脱硫脱酸':'waste','实验室通用':'other'
+  '固废':'waste','粉煤灰':'waste','建材':'waste','能源':'waste','烟气脱硫脱酸':'waste',
+  '新材料':'other','塑料/橡胶/胶黏剂':'chem',
+  '其他':'other','实验室通用':'other'
 };
+/* 邻类：本类关键词没命中时的次优档。医药/食品共用 GMP 产线、矿物/固废/硬质矿物共用耐磨产线，
+   这类「相邻但不等价」不该和完全不搭的类别同罚（原来两者都是 0.45，等于把子集关系判成无关）。 */
+const CAT_ADJ = {
+  pharma:['food','herb'], food:['pharma','herb'], herb:['food','pharma'],
+  mineral:['hard','waste'], hard:['mineral','metal'], waste:['mineral','hard'],
+  metal:['hard','waste'], chem:['battery','mineral'],
+  battery:['chem','metal'], other:[]
+};
+/* 物料 cat -> UI 类别：先查原字符串，查不到就去掉空白/斜杠/顿号后再查一次。
+   物料库 1433 条由人工录入，「塑料/橡胶/胶黏剂」这类带分隔符的标签极易和映射表写岔一个字。 */
+const CATV = (function(){
+  const norm = k => String(k == null ? '' : k).replace(/[\s\/\\、，,·・\-_]+/g, '');
+  const index = {};
+  Object.keys(CAT_TO_VALUE).forEach(function(k){ index[norm(k)] = CAT_TO_VALUE[k]; });
+  return function(cat){ return CAT_TO_VALUE[cat] || index[norm(cat)] || 'other'; };
+})();
 /* 开关 data-k -> v5 tag id */
 const SWITCH_TAG = {
   hard:'hard5', quartz:'corr', wet:'moist5', fib:'fiber', sticky:'sticky',
@@ -2243,7 +2297,7 @@ matEl.addEventListener('input', () => {
   if(!val) return;
   const hit = lookupMaterial(val);
   if (hit) {
-    const cv = CAT_TO_VALUE[hit.cat] || 'other';
+    const cv = CATV(hit.cat);
     if(catEl.value===''||!catEl.value) catEl.value = cv;
     [...chipsEl.querySelectorAll('.switch-row')].forEach(r=>r.classList.remove('on'));
     (hit.tags || []).forEach(t => { const k=TAG_SWITCH[t]; if(k) setSwitch(k,true); });
@@ -2613,7 +2667,7 @@ function caseSectionHtml(items, ctx) {
 ;(function(){
   'use strict';
   var process = { env: {} };            // fit.js 用 process.env.NOBAND / NOBIG 做对照开关，线上恒为关闭
-  var _DOM = { DATA: DATA, DATA_MATERIALS: DATA_MATERIALS, CAT_ALIAS: CAT_ALIAS,
+  var _DOM = { DATA: DATA, DATA_MATERIALS: DATA_MATERIALS, CAT_ALIAS: CAT_ALIAS, CAT_ADJ: CAT_ADJ,
                SWITCH_TAG: SWITCH_TAG, TAG_SWITCH: TAG_SWITCH, DATA_CASES: DATA_CASES };
   var __mods = {}, __cache = {};
   function __req(name){
@@ -2626,7 +2680,7 @@ function caseSectionHtml(items, ctx) {
   }
   __mods['./kb.js'] = function(module, exports, require){
 /**
- * kb.js — 案例知识库 + 选型打分核（v7）
+ * kb.js — 案例知识库 + 选型打分核（v8）
  * 数据源：index.html 的 DATA / DATA_MATERIALS（设备库、物料库，只读不改）
  *         data/cases-*.tsv（官网案例，CN 99 训练 / EN 64 跨站留出）
  * 原则：任何打分项都是「对全体案例成立」的函数；不含按案例标题查表的记忆项。
@@ -2654,6 +2708,7 @@ function cut(name, endName) {
 const DATA = cut('DATA', 'DATA_MATERIALS');
 const MATS = cut('DATA_MATERIALS', 'CAT_DISPLAY');
 const CAT_ALIAS = cut('CAT_ALIAS', 'CAT_TO_VALUE');
+const CAT_ADJ = cut('CAT_ADJ', 'CATV');
 const SWITCH_TAG = cut('SWITCH_TAG', 'TAG_LABEL');
 const TAG_SWITCH = cut('TAG_SWITCH', 'matListEl');
 
@@ -2914,9 +2969,11 @@ function loadCases() {
 }
 
 // ---------- 物料 → 类别（弱先验，不用 35 分硬门槛） ----------
+// 案例行业标签 -> 打分类别。键必须逐字命中，漏一个标签就等于把整批案例降成 other（F 被压到 0.45）。
 const IND2CLASS = {
   '非金属矿': 'mineral', '电池材料': 'battery', '精细化工': 'chem', '食品/保健品/化妆品': 'food',
-  '建材及固废': 'waste', '高新材料': 'other', '医药': 'pharma', '粉末冶金': 'metal',
+  '食品添加剂': 'food', '建材及固废': 'waste', '高新材料': 'other',
+  '医药': 'pharma', '粉末冶金': 'metal', '能源': 'waste', '塑料/橡胶/胶黏剂': 'chem',
   '其他材料': 'other', '颜料/染料': 'chem', '环保脱硫': 'waste',
   'chemical': 'chem', 'minerals': 'mineral', 'battery-materials': 'battery', 'food-health-products': 'food',
   'medicine': 'pharma', 'architecture': 'waste', 'laboratory-equipment': 'other', 'laboratory': 'other',
@@ -2982,6 +3039,14 @@ function feats(c) {
   };
 }
 function MATCL(ind) { return IND2CLASS[ind] || IND2CLASS[String(ind).split(/\s*\/\s*/)[0]] || 'other'; }
+// 打分类别三档：本类关键词命中 1.0 / 邻类命中 0.7 / 完全不搭 0.45。
+// 原来只有 1.0 和 0.45 两档，等于把「医药与食品共用 GMP 产线」和「食品与烟气脱硫」当同一回事。
+function catHit(mat, cls) { return (CAT_ALIAS[cls] || []).some(a => a && mat.includes(a)); }
+function catTier(mat, cls, material) {
+  if (catHit(mat, cls) || (material && mat.includes(material))) return 1;
+  if ((CAT_ADJ[cls] || []).some(a => catHit(mat, a))) return 0.7;
+  return 0.45;
+}
 
 const SUPERS = ['气流磨', '机械磨', '分级', '球磨线', '改性', '实验室', '蒸汽'];
 function buildPrior(train) {
@@ -3095,9 +3160,9 @@ function familyFallback(train) {
 }
 
 module.exports = {
-  DATA, MATS, CAT_ALIAS, SWITCH_TAG, TAG_SWITCH, SUPERS, TAGRE, ALIAS,
+  DATA, MATS, CAT_ALIAS, CAT_ADJ, SWITCH_TAG, TAG_SWITCH, SUPERS, TAGRE, ALIAS,
   parseDevSizeRanges, parseDevCaps, parseModels, matchTag, devFamily, famToSupers, loadCases, casesFromRows,
-  findMat, caseTags, buildPrior, priorDist, familyFallback, familyMarginals, marginal, feats, MATCL, numOf, capToKgH, sizeToUm
+  findMat, caseTags, buildPrior, priorDist, familyFallback, familyMarginals, marginal, feats, MATCL, catTier, numOf, capToKgH, sizeToUm
 };
 
   };
@@ -3257,9 +3322,9 @@ function score(dev, ctx, prior, trace) {
   let fh = 0, fu = 0;
   for (const t of ctx.tags) { const r = K.matchTag(dev, t); if (r === true) fh++; else if (r === null) fu++; }
   const E = ctx.tags.length ? (fh + fu * 0.5) / ctx.tags.length : 0.7;
-  // F 物料/行业弱先验
+  // F 物料/行业弱先验：本类命中 1.0 / 邻类 0.7 / 不搭 0.45（三档定义在 kb.js 的 catTier）
   const mat = dev.mat || '';
-  const F = ((K.CAT_ALIAS[ctx.cat] || []).some(a => a && mat.includes(a)) || (ctx.material && mat.includes(ctx.material))) ? 1 : 0.45;
+  const F = K.catTier(mat, ctx.cat, ctx.material);
   // G 工艺链
   const G = /闭路|串联|多级|一体|干燥|改性|循环|生产线|组合/.test((dev.sell || '') + (dev.prin || '')) ? 1 : 0.6;
   // H 分级精度
@@ -3274,7 +3339,7 @@ function score(dev, ctx, prior, trace) {
 
 function ctxOf(c) {
   return {
-    cat: K.CAT_ALIAS[K.MATCL(c.ind)] ? K.MATCL(c.ind) : K.MATCL(c.ind),
+    cat: K.MATCL(c.ind),
     material: String(c.material).split(/[、,，/]/)[0].trim(),
     // 案例成品粒度常标 D50/D90/D95/D99，直接和设备 D97 范围比会系统性偏细（D50 差 2.5 倍）。
     // 统一换算到 D97 当量再比：D90/D95 ×1.2，D50 ×2.5，D99/D100 ×0.9（方案 §3.4）。
@@ -3451,12 +3516,14 @@ if (batchIdx) {
 
 
 
+
+
+
+
 /* ============ 主选型（v5） ============ */
 function evaluate(){
   const name=matEl.value.trim();
   const catVal=catEl.value;
-  const cat=CAT_DISPLAY[catVal] || catVal;
-  const aliases=CAT_ALIAS[catVal] || [cat];
   if(!catVal){ outEl.innerHTML='<div class="card" style="padding:0;"><div class="empty-state"><h3>请选择物料类别</h3><p>先选择类别后再执行评估。</p></div></div>'; return; }
   if(!(actualSizeUm>0)){
     outEl.innerHTML='<div class="card" style="padding:0;"><div class="empty-state"><h3>参数异常</h3><p>请检查粒度滑动条。</p></div></div>';
@@ -3567,11 +3634,77 @@ function renderTop3(items, ctx){
 }
 
 /* 导出 PDF：浏览器打印对话框 →「另存为 PDF」。打印样式只保留 #top3 与页眉页脚 */
-outEl.addEventListener('click', e => {
-  if (e.target && e.target.id === 'pdfBtn') window.print();
+$('go').addEventListener('click', evaluate);
+
+/* ============ 公司名称：导出前置必填校验 ============ */
+/* 判定口径：去首尾空白后为空即视为未填（空字符串 / 纯空格 / 全角空格同样阻断）；
+   内部连续空白压成单个半角空格，避免拼出「甲  乙」这种双空格。 */
+const COMPANY_SEP = '｜';   // 固定分隔符：v10 之后紧跟它再跟公司名称
+const companyEl = $('company'), companyErr = $('companyErr'), companyTag = $('companyTag');
+
+function companyName(){
+  return String((companyEl && companyEl.value) || '').replace(/[\s\u3000]+/g, ' ').trim();
+}
+function setCompanyError(on, msg){
+  if (!companyEl) return;
+  companyEl.classList.toggle('is-invalid', !!on);
+  companyEl.setAttribute('aria-invalid', on ? 'true' : 'false');
+  if (companyErr){
+    if (msg) companyErr.textContent = msg;
+    companyErr.classList.toggle('on', !!on);
+  }
+}
+function syncCompanyTag(name){
+  if (!companyTag) return;
+  companyTag.textContent = name ? COMPANY_SEP + name : '';
+  companyTag.hidden = !name;
+}
+function syncPrintCompany(name){
+  const el = document.getElementById('printCompany');
+  if (el) el.textContent = name ? COMPANY_SEP + name : '';
+}
+companyEl.addEventListener('input', () => {
+  const name = companyName();
+  syncCompanyTag(name);
+  if (name) setCompanyError(false);
 });
 
-$('go').addEventListener('click', evaluate);
+/* 导出 PDF：先校验公司名称，未填则不弹打印对话框、不改纸面，直接在字段下标红并回焦 */
+function exportPdf(){
+  const name = companyName();
+  if (!name){
+    setCompanyError(true, '公司名称为空，导出已阻断。纯空格不算填写，请填写后再导出。');
+    if (companyEl){
+      companyEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      companyEl.focus({ preventScroll: true });
+    }
+    return false;
+  }
+  setCompanyError(false);
+  syncPrintCompany(name);
+  const metaEl = document.getElementById('printMeta');
+  const meta = metaEl ? metaEl.textContent : '';
+  // PDF 默认文件名取自 document.title，导出时把公司名称也带进去，打完再还原
+  const prevTitle = document.title;
+  document.title = ('粉体预选型 v10' + COMPANY_SEP + name + (meta ? COMPANY_SEP + meta : ''))
+    .replace(/\s+/g, ' ').trim();
+  window.addEventListener('afterprint', () => { document.title = prevTitle; }, { once: true });
+  window.print();
+  return true;
+}
+
+outEl.addEventListener('click', e => {
+  if (e.target && e.target.id === 'pdfBtn') exportPdf();
+});
+
+/* Ctrl+P / 浏览器菜单打印走同一条校验：未填公司名称则推荐卡不进纸面，只出一条阻断说明 */
+window.addEventListener('beforeprint', () => {
+  const name = companyName();
+  syncPrintCompany(name);
+  document.body.classList.toggle('company-missing', !name);
+  if (!name) setCompanyError(true, '公司名称为空，打印 / 导出已阻断。请先填写公司名称。');
+});
+window.addEventListener('afterprint', () => document.body.classList.remove('company-missing'));
 
 // 初始化颜色
 capDisplay.style.color = getDynamicColor(500, 10, 10000);
