@@ -13,25 +13,34 @@
 
 | 区块 | 填什么 | 说明 |
 |---|---|---|
-| 00 公司名称 | 页面顶部「公司名称（导出 PDF 必填）」 | **必填**，未填时导出被阻断。去空格后为空（含纯空格 / 全角空格）一律视为未填；名称会拼在「粉体预选型 v10」之后、以 `｜` 分隔，同时进 PDF 页眉与 PDF 默认文件名 |
 | 01 物料与产能 | 物料名称（可从 1433 条库选，也可手填）、产能 kg/h | 手填时按名称 / 别名 / 英文名 / CAS 号去库里匹配，匹配不到自动降级为通用先验 |
 | 02 粒度标准 | 目标粒径 + 分布（D50/D90/D97/D99/D100）、单位（µm / 目）、入料粒度 | 入料粒度可不填，不填时粉碎比按中性处理 |
 | 03 物理与工艺属性 | 13 项开关：莫氏硬度高、磨蚀性极强、含水率高、纤维 / 高韧性、粘性易糊壁、易起静电、流动性差、热敏 / 低熔点、易氧化、易挥发、易燃易爆、无金属污染、医药食品级 | 勾选会改变机型与防护配置；只有勾了「易燃易爆」才出现防爆强制提示 |
 
 ## 结果怎么读
 
-每张结果卡三行：**推荐型号**、**可达粒度**、**推荐理由**。推荐理由把各分项压成一条可扫读的串：
+每张结果卡自上而下：**机型图**（该族有样册图的才显示）、**推荐型号 + 匹配度**、规格表（可达粒度 / 单机产能 / 分级方式等）、**推荐理由**一条。
+
+推荐理由不给百分比，只给能对得上的数：
 
 ```
-最符合 · 粒度匹配 83%（型号） · 产能匹配 100% · 粉碎比 12（90%） · 分级精度 95%
+最符合 · 可达 D97 5–45 µm · 单机 300–5000 kg/h · 粉碎比 300
+次选   · 可达 D50 2–150 µm（D50 口径，与你填的 D97 不同） · 单机 200–3000 kg/h
 ```
 
-其中粒度、产能是工况硬约束；粉碎比、分级精度由设备库参数和入料/出料粒度推算；机理、物料行业先验、工艺链来自知识库。
+- 粒度区间直接取设备库，括号里注明是「系列范围」还是「口径不同」——拿 D50 区间回答 D97 的问题，懂行的客户一眼能看出来，所以宁可自己先说。
+- 样册没列产能的族写「样册未列产能，按物料与细度核定」，不编一个「产能匹配 90%」上去：客户一问「90% 怎么算的」就答不上来。
+- 匹配度百分比只出现在卡片角标，它是排序分的归一化结果，不是实验结论，排序的可靠性见下方「注意边界」。
+
+机型图来自官网样册，已洗白底色、去掉棚拍水印、按主体裁边（`tools/white-bg.py`），33 个族有图，其余族不出图、卡片直接收起图片区，不留空框。
 
 下面「参考成交案例」按**物料 / 粒度 / 产量**三个维度做最近邻检索，只列同料（或同料族）的案例，每条带时间。时间只到年份：官网只给了站内上线批次，没有逐条成交日期，精确到月等于编精度。
 
-**导出 PDF**：结果区右上角「导出 PDF（前 3 名）」，只导出这 3 张推荐卡 + 一行免责声明，不含输入区与案例列表。
-导出前会强制校验公司名称：没填就拦下来，按钮不弹打印对话框，只在字段下标红提示；绕开按钮直接 Ctrl+P 的，纸面上不会出推荐卡，只留一条阻断说明。公司名称拼在页眉「粉体预选型 v10」之后，固定用 `｜` 分隔。
+**导出 PDF**：结果区右上角「导出 PDF（前 3 名）」，只导出这 3 张推荐卡 + 一行免责声明，不含输入区与案例列表，压在一页 A4 内（打印样式按 mm 排版，纸张尺寸写死在 `@page`，浏览器边距不影响）。
+
+公司名称不在表单里，点「导出」才弹一次框问：它是给客户看的抬头，不是选型参数，放在顶部只会让人以为必填。名称校验在弹框内做（纯空格 / 全角空格一律算没填，只在字段下标红，不弹打印框），填过会存 `localStorage`，下次不用重填。名称拼在页眉「粉体预选型 v11.1」之后、固定用 `｜` 分隔，同时进 PDF 默认文件名。
+
+绕开按钮直接 Ctrl+P **不阻断**：客户按 Ctrl+P 只是想留一张纸，弹「已阻断」会让人以为页面坏了。有存过公司名就带上抬头，没有就只印版本号与工况。
 
 **注意边界**：
 
@@ -56,8 +65,10 @@
 ## 目录
 
 ```
-index.html                    单页应用（样式 + 数据 + 引擎 + 案例层，全部内联）
+index.html                    单页应用（样式 + 数据 + 引擎 + 案例层，全部内联，可直接双击打开）
 data/
+  machine-images.json         机型图 base64（33 族，源图清洗后的产物，随仓库发布）
+  machine-images.raw.json     机型图源（官网样册原图，white-bg.py 的输入）
   cases-cn-99.tsv             中文站案例（训练集）
   cases-en-64.tsv             英文站案例（跨站留出）
   replay-cn99.tsv             回放逐例结果
@@ -70,6 +81,8 @@ tools/
   test-company.js             公司名称校验与拼接的回归测试（最小 DOM 桩，无需浏览器）
   kb.js / fit.js              打分核与回放（引擎源码）
   build-engine-embed.js       把引擎打包注入 index.html
+  white-bg.py                 机型图清洗：洗白底色 → 吞掉棚拍水印 → 按主体裁边
+  build-machine-images.js     把 machine-images.json 打包注入 index.html
   case-module.js              案例检索层源码
   inject-case-module.js       把案例层注入 index.html
   build-cases-embed.js        把 TSV 编译成 DATA_CASES
@@ -82,6 +95,15 @@ tools/
 ```
 
 ## 版本历史
+
+### v11（2026-02）
+
+- **结果卡配机型图**：官网样册图洗白底 → 吞掉棚拍水印 → 按主体裁边后 base64 内嵌（33 个族有图，`data/machine-images.raw.json` → `tools/white-bg.py` → `data/machine-images.json` → `tools/build-machine-images.js`）。三件清洗缺一不可：底色若留着棚拍暖白，图上就会在纸色底上压出一块比纸略暗的方块；水印只有 232–250 亮度、饱和度≈0，白平衡洗不掉，得按连通性一起吞；裁边是为了让 18 张留白不同的图在页面上按高度对齐后机器大小可比。
+- **参考成交案例**：结果区下方按物料 / 粒度 / 产量做最近邻检索，只列同料（或同料族）案例。
+- **删掉编不出来的百分比**：粒度、产能不再给「匹配 83%」这类数，改成直接给设备库里的区间 + 是否需并联；样册没列产能的族写「按物料与细度核定」。百分比只留在卡片角标的排序分上。
+- **公司名称改成点「导出」才问**：它是给客户看的抬头，不是选型参数，放在表单顶部会让人以为必填。
+- **PDF 压到一页 A4**：打印样式按 mm 排版、`@page` 写死纸张，机型图 52mm、卡间距 10mm；导出不含输入区与案例，只有 3 张卡 + 免责声明。
+- **Ctrl+P 不再阻断**：v10 用 `beforeprint` 加 `company-missing` 把纸面压成一条阻断说明，实际效果是客户自己按打印时以为页面坏了。现在有存过公司名就带抬头，没有就只印版本号与工况。
 
 ### v10（2026-01）
 
@@ -108,6 +130,11 @@ tools/
 node tools/build-engine-embed.js          # 写入
 node tools/build-engine-embed.js --check  # 只校验（提交前自查）
 
+# 改机型图：先改 data/machine-images.raw.json，清洗后再注入
+python tools/white-bg.py                  # 需要 Pillow
+node tools/build-machine-images.js        # 写入
+node tools/build-machine-images.js --check
+
 # 改案例检索/展示：先改 tools/case-module.js，再注入
 node tools/inject-case-module.js
 node tools/inject-case-module.js --check
@@ -127,18 +154,18 @@ node tools/fit.js --case 乳糖   # 逐项拆解单个案例的打分
 提交前跑这三项（都不需要浏览器）：
 
 ```bash
-node tools/build-engine-embed.js --check   # 引擎块与 kb.js/fit.js 是否同步
-node tools/audit-cat.js                    # 物料分类映射链（有断点则 exit 1）
-node tools/test-company.js                 # 公司名称必填与拼接回归
+node tools/build-engine-embed.js --check    # 引擎块与 kb.js/fit.js 是否同步
+node tools/build-machine-images.js --check   # 机型图块与 machine-images.json 是否同步
+node tools/audit-cat.js                     # 物料分类映射链（有断点则 exit 1）
+node tools/test-company.js                  # 导出弹层里公司名称的校验与拼接回归
 ```
 
 ## 部署
 
-GitHub Pages，从 `3698688050-pixel/powder-equipment-selector` 的 `main` 分支根目录构建。
-本地 `mine` remote 指向该仓库，`origin` 指向原作者仓库（无推送权限）。
+GitHub Pages，从 `3698688050-pixel/powder-equipment-selector` 的 `main` 分支根目录构建，`origin` 即该仓库。
 
 ```bash
-git push mine HEAD:main
+git push origin HEAD:main
 ```
 
 推送后 Pages 约需 1 分钟重新构建，用 `gh api repos/3698688050-pixel/powder-equipment-selector/pages --jq .status` 查 `built` 即生效。
