@@ -5,224 +5,362 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>粉体设备高级预选型 - 极简开关版</title>
 <style>
+  /* =========================================================
+     锤子 OS / Smartisan 方向：纸白 · 墨 · 朱砂
+     单一强调色，其余全部灰阶；层级靠字号 / 字重 / 发丝线，
+     不用阴影、不用渐变、不用发光。读数用等宽 tabular 数字。
+     ========================================================= */
   :root {
-    --bg: #0f0f11; --surface: #1a1a1e; --text-main: #f2f2f5; --text-sub: #8b8b93;
-    --line: #2a2a30; --accent: #2979ff; --accent-glow: rgba(41, 121, 255, 0.3);
-    --danger: #ff5252;
-    
-    --shadow-out: 4px 4px 10px rgba(0,0,0,0.4), -2px -2px 6px rgba(255,255,255,0.03);
-    --shadow-in: inset 4px 4px 10px rgba(0,0,0,0.6), inset -2px -2px 6px rgba(255,255,255,0.05);
+    --paper: #FCFCFA;
+    --ink: #17191C;
+    --ink-2: #4A4C50;
+    --muted: #82837E;
+    --rule: #DFDFDA;
+    --rule-soft: #ECECE7;
+    --vermilion: #B63A2B;
+
+    /* 旧变量名保留，避免内联样式失联 */
+    --bg: var(--paper);
+    --surface: transparent;
+    --surface-hover: #ECECE7;
+    --text-main: var(--ink);
+    --text-sub: var(--muted);
+    --line: var(--rule);
+    --accent: var(--vermilion);
+    --accent-glow: transparent;
+    --danger: var(--vermilion);
+
+    --radius: 4px;
+    --shadow-out: none;
+    --shadow-in: none;
+
+    --num: "Bahnschrift", "DIN Alternate", "Segoe UI", -apple-system, sans-serif;
+    --serif: "Songti SC", SimSun, "Noto Serif SC", serif;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
   body {
-    background-color: var(--bg); color: var(--text-main);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
-    line-height: 1.5; -webkit-font-smoothing: antialiased; padding: 24px 16px 60px;
+    background-color: var(--paper); color: var(--ink);
+    font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", -apple-system, sans-serif;
+    font-size: 15px; line-height: 1.65; font-feature-settings: "tnum" 1;
+    -webkit-font-smoothing: antialiased; padding: 36px 20px 72px;
   }
 
-  .wrap { max-width: 520px; margin: 0 auto; }
+  .wrap { max-width: 560px; margin: 0 auto; }
 
-  .header { margin-bottom: 24px; padding: 0 4px; }
-  .header h1 { 
-    font-size: 28px; font-weight: 900; letter-spacing: -0.04em; color: #fff;
-    display: flex; align-items: center; gap: 10px;
+  /* ── 页头：一条 2px 墨线，标题用宋体，不加色块 ───────────── */
+  .header { padding: 0 0 10px; border-bottom: 2px solid var(--ink); }
+  .header h1 {
+    font-family: var(--serif); font-size: 24px; font-weight: 600;
+    letter-spacing: .01em; color: var(--ink);
+    display: flex; align-items: baseline; gap: 10px;
   }
-  .header h1::before { content: ''; display: block; width: 6px; height: 22px; background: var(--accent); border-radius: 3px; }
+  .header h1::before { content: none; }
+  .mastnote {
+    margin: 6px 0 0; font-size: 12px; line-height: 1.7;
+    color: var(--muted); max-width: 46em;
+  }
 
+  /* ── 分区卡：无底色、无圆角、无阴影，只靠墨线分隔 ─────────── */
   .card {
-    background: var(--surface); border-radius: 20px;
-    box-shadow: var(--shadow-out); border: 1px solid rgba(255, 255, 255, 0.04);
-    margin-bottom: 20px; overflow: hidden; position: relative;
+    background: transparent; border: 0; border-radius: 0; box-shadow: none;
+    margin: 30px 0 0; padding: 0; position: relative; overflow: visible;
   }
 
-  .card-head { padding: 18px 20px 10px; display: flex; justify-content: space-between; align-items: center; }
-  .card-title-wrap { display: flex; align-items: center; gap: 8px; }
-  .card-num { font-size: 12px; font-weight: 800; color: var(--accent); background: rgba(41, 121, 255, 0.15); padding: 2px 8px; border-radius: 6px; }
-  .card-title { font-size: 16px; font-weight: 700; color: var(--text-main); }
+  .card-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding: 0 0 9px; border-bottom: 1px solid var(--ink);
+  }
+  .card-title-wrap { display: flex; align-items: baseline; gap: 9px; min-width: 0; }
+  .card-num {
+    font-family: var(--num); font-size: 11.5px; font-weight: 400;
+    color: var(--vermilion); letter-spacing: .1em;
+    background: none; padding: 0; border-radius: 0; flex: none;
+  }
+  .card-title {
+    font-family: var(--serif); font-size: 16px; font-weight: 600;
+    letter-spacing: .04em; color: var(--ink);
+  }
 
-  .card-body { padding: 10px 20px 20px; }
+  .card-body { padding: 16px 0 0; }
 
-  /* 基础输入框 */
-  .input-group { margin-bottom: 16px; }
-  .input-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-sub); margin-bottom: 8px; }
+  /* ── 输入：底线式，像填好的表单，不是输入框 ──────────────── */
+  .input-group { margin-bottom: 18px; }
+  .input-group:last-child { margin-bottom: 0; }
+  .input-label {
+    display: block; font-size: 12.5px; font-weight: 400;
+    color: var(--muted); letter-spacing: .05em; margin-bottom: 3px;
+  }
   .input-field {
-    width: 100%; background: var(--bg); border: none; border-radius: 12px;
-    padding: 16px; color: var(--text-main); font-family: inherit; font-size: 16px; font-weight: 500;
-    box-shadow: var(--shadow-in); outline: none; border: 1px solid transparent; transition: border 0.2s;
+    width: 100%; background: transparent; border: 0; border-bottom: 1px solid var(--line);
+    border-radius: 0; padding: 5px 0 7px; color: var(--ink);
+    font-family: inherit; font-size: 15.5px; font-weight: 600;
+    outline: none; transition: border-color .15s;
   }
-  .input-field:focus { border: 1px solid var(--accent); box-shadow: var(--shadow-in), 0 0 0 3px var(--accent-glow); }
+  .input-field::placeholder { color: #B4B5B0; font-weight: 400; }
+  .input-field:focus { border-bottom-color: var(--vermilion); }
   select.input-field {
-    -webkit-appearance: none; appearance: none;
-    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%238b8b93%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-    background-repeat: no-repeat; background-position: right 16px top 50%; background-size: 12px auto;
+    -webkit-appearance: none; appearance: none; cursor: pointer; padding-right: 22px;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+      linear-gradient(-45deg, transparent 50%, var(--muted) 50%);
+    background-position: calc(100% - 10px) 56%, calc(100% - 5px) 56%;
+    background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
   }
+  select.input-field option { background: #fff; color: var(--ink); font-weight: 500; }
 
-  /* 滑块与数字输入 */
-  .slider-container { margin-bottom: 24px; }
+  /* ── 滑块：读数 38px 等宽；轨道 2px 发丝线 + 底部刻度 ─────── */
+  .slider-container { margin-bottom: 22px; }
   .slider-container:last-child { margin-bottom: 0; }
-  
-  .slider-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; }
-  .slider-label { font-size: 13px; font-weight: 600; color: var(--text-sub); }
-  .slider-value-wrap { text-align: right; position: relative; }
-  
-  .slider-value { 
-    font-size: 28px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; 
-    transition: color 0.1s; cursor: pointer;
-    border-bottom: 1px dashed rgba(255,255,255,0.2);
-    padding-bottom: 2px;
-  }
-  .slider-value:hover { border-bottom-color: var(--accent); }
-  
-  .inline-input {
-    font-size: 28px; font-weight: 900; line-height: 1;
-    background: rgba(41, 121, 255, 0.1); border: 1px solid var(--accent);
-    color: #fff; width: 110px; text-align: right; outline: none;
-    border-radius: 8px; padding: 0 4px;
-    font-family: inherit; -webkit-appearance: none;
-  }
-  
-  .slider-unit { font-size: 14px; color: var(--text-sub); font-weight: 600; margin-left: 2px; }
 
-  input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 8px 0; }
+  .slider-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 6px; }
+  .slider-label { font-size: 12.5px; font-weight: 400; color: var(--muted); letter-spacing: .05em; }
+  .slider-value-wrap { display: flex; align-items: baseline; gap: 6px; text-align: right; }
+
+  .slider-value {
+    font-family: var(--num); font-size: 38px; line-height: 1; font-weight: 500;
+    letter-spacing: -.01em; font-variant-numeric: tabular-nums;
+    transition: color .1s; cursor: pointer;
+    border-bottom: 1px solid transparent; padding-bottom: 1px;
+  }
+  .slider-value:hover { border-bottom-color: var(--rule); }
+
+  .inline-input {
+    font-family: var(--num); font-size: 38px; line-height: 1; font-weight: 500;
+    background: transparent; border: 0; border-bottom: 1px solid var(--line);
+    color: var(--ink); width: 120px; text-align: right; outline: none;
+    border-radius: 0; padding: 0 2px 1px; -webkit-appearance: none;
+    transition: border-color .15s;
+  }
+  .inline-input:focus { border-bottom-color: var(--vermilion); }
+  .inline-input::placeholder { color: #C2C3BD; font-weight: 400; }
+
+  .slider-unit { font-size: 12.5px; color: var(--muted); font-weight: 400; letter-spacing: .05em; margin-left: 0; }
+
+  input[type=range] {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 22px;
+    margin: 4px 0 0; background: transparent; cursor: pointer;
+    background-image: repeating-linear-gradient(to right, var(--rule-soft) 0 1px, transparent 1px 10%);
+    background-position: left bottom; background-size: 100% 7px; background-repeat: no-repeat;
+  }
   input[type=range]:focus { outline: none; }
   input[type=range]::-webkit-slider-runnable-track {
-    width: 100%; height: 12px; cursor: pointer;
-    background: var(--bg); border-radius: 6px; box-shadow: var(--shadow-in); border: 1px solid rgba(255,255,255,0.02);
+    width: 100%; height: 2px; cursor: pointer;
+    background: var(--rule); border: 0; border-radius: 0; box-shadow: none;
   }
   input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; height: 28px; width: 28px; border-radius: 50%;
-    background: var(--surface); border: 2px solid var(--accent);
-    margin-top: -9px; cursor: pointer; box-shadow: 2px 2px 6px rgba(0,0,0,0.5), -1px -1px 4px rgba(255,255,255,0.1);
-    transition: transform 0.1s, border-color 0.2s;
+    -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%;
+    background: var(--vermilion); border: 2px solid var(--paper); margin-top: -6px;
+    box-shadow: 0 0 0 1px var(--vermilion); cursor: pointer;
+    transition: transform .1s, background .15s;
   }
-  input[type=range]::-webkit-slider-thumb:active { transform: scale(1.15); background: var(--surface-hover); }
+  input[type=range]::-webkit-slider-thumb:active { transform: none; background: var(--vermilion); }
+  input[type=range]::-moz-range-track { height: 2px; background: var(--rule); border: 0; }
+  input[type=range]::-moz-range-thumb {
+    height: 12px; width: 12px; border: 2px solid var(--paper); border-radius: 50%;
+    background: var(--vermilion); box-shadow: 0 0 0 1px var(--vermilion);
+  }
 
-  .slider-ticks { display: flex; justify-content: space-between; font-size: 11px; color: #55555c; font-weight: 600; margin-top: 4px; padding: 0 4px; }
+  .slider-ticks {
+    display: flex; justify-content: space-between;
+    font-size: 11.5px; color: var(--muted); font-weight: 400;
+    margin-top: 2px; padding: 0;
+  }
 
-  .unit-switch { display: flex; background: var(--bg); border-radius: 8px; padding: 2px; box-shadow: var(--shadow-in); border: 1px solid rgba(255,255,255,0.02); }
+  /* ── 分段控件（µm/目、D50…D100）：整块黑底做选中，不用药丸 ── */
+  .unit-switch {
+    display: flex; background: transparent; border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 0; overflow: hidden;
+    box-shadow: none; flex: none;
+  }
   .unit-switch button {
-    padding: 4px 12px; border: none; background: transparent; font-size: 12px; font-weight: 700;
-    color: var(--text-sub); border-radius: 6px; cursor: pointer; transition: all 0.2s;
+    flex: 1; padding: 6px 12px; border: 0; border-left: 1px solid var(--line);
+    background: transparent; font-family: inherit; font-size: 12.5px; font-weight: 400;
+    color: var(--muted); cursor: pointer; transition: background .15s, color .15s;
+    white-space: nowrap;
   }
-  .unit-switch button.on { background: var(--surface-hover); color: #fff; box-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+  .unit-switch button:first-child { border-left: 0; }
+  .unit-switch button.on { background: var(--ink); color: var(--paper); font-weight: 600; }
 
+  /* ── 主按钮：通体墨色，悬停才转朱砂 ──────────────────────── */
   .btn-primary {
-    display: block; width: 100%; padding: 18px; border-radius: 16px;
-    background: var(--accent); color: #fff; border: none; font-family: inherit; font-size: 18px; font-weight: 800;
-    cursor: pointer; box-shadow: 0 6px 20px var(--accent-glow), inset 0 2px 0 rgba(255,255,255,0.2);
-    transition: all 0.1s; margin-bottom: 32px;
+    display: block; width: 100%; padding: 15px; border-radius: var(--radius);
+    background: var(--ink); color: var(--paper); border: 0;
+    font-family: inherit; font-size: 15px; font-weight: 600; letter-spacing: .09em;
+    cursor: pointer; box-shadow: none; transition: background .15s;
+    margin: 34px 0 0;
   }
-  .btn-primary:active { transform: translateY(2px); box-shadow: 0 2px 10px var(--accent-glow); }
+  .btn-primary:hover { background: var(--vermilion); }
+  .btn-primary:active { transform: none; background: var(--vermilion); }
 
-  /* =========================================
-     新设计：iOS 风格工艺开关列表
-     ========================================= */
+  /* =========================================================
+     工艺属性：双列勾选清单（18px 方框 + 朱砂打勾）
+     ========================================================= */
   .switch-list {
-    display: flex;
-    flex-direction: column;
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
+    display: grid; grid-template-columns: 1fr 1fr;
+    column-gap: 26px; row-gap: 0;
+    border-top: 1px solid var(--rule-soft);
+    border-bottom: 0;
   }
-  
+
   .switch-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--line);
-    cursor: pointer;
-    transition: background 0.1s;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 10px; min-height: 46px; padding: 0;
+    border-bottom: 1px solid var(--rule-soft);
+    cursor: pointer; transition: none;
   }
-  .switch-row:last-child { border-bottom: none; }
-  .switch-row:active { background: rgba(255,255,255,0.03); }
+  .switch-row:last-child { border-bottom: 1px solid var(--rule-soft); }
+  .switch-row:active { background: transparent; }
 
   .switch-label {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--text-main);
-    transition: color 0.2s;
+    font-size: 14px; font-weight: 400; color: var(--ink-2);
+    letter-spacing: .01em; transition: color .12s;
   }
 
-  /* iOS 开关轨道 */
+  /* 方框：默认只是 1px 浅线，勾选后才出现朱砂 */
   .switch-track {
-    width: 44px;
-    height: 24px;
-    border-radius: 24px;
-    background: #333;
-    position: relative;
-    transition: background 0.3s ease;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+    width: 18px; height: 18px; border-radius: 2px; flex: none;
+    background: transparent; border: 1px solid #D3D3CB;
+    position: relative; transition: background .12s, border-color .12s;
+    box-shadow: none;
+  }
+  .switch-thumb { display: none; }
+
+  .switch-row.on .switch-track { background: var(--vermilion); border-color: var(--vermilion); }
+  .switch-row.on .switch-track::after {
+    content: ""; position: absolute; left: 5px; top: 1px; width: 4px; height: 9px;
+    border: solid var(--paper); border-width: 0 2px 2px 0; transform: rotate(42deg);
+  }
+  .switch-row.on .switch-label { color: var(--ink); font-weight: 600; }
+
+  /* 易燃易爆：标签本身带朱砂，勾选后同样是朱砂框 */
+  .switch-row[data-k="ex"].on .switch-track { background: var(--vermilion); }
+  .switch-row[data-k="ex"].on .switch-label { color: var(--vermilion); }
+
+  /* =========================================================
+     结果区：规格表语言 —— 编号 / 型号 / 读数 / 理由
+     ========================================================= */
+  .res-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    margin: 34px 0 0; padding: 0 0 8px;
+    border-bottom: 1px solid var(--ink);
+  }
+  .res-header h2 {
+    font-family: var(--serif); font-size: 16.5px; font-weight: 600;
+    letter-spacing: .05em; color: var(--ink); margin: 0;
+  }
+  .res-header-meta {
+    flex: none; font-size: 11.5px; font-weight: 400; color: var(--muted);
+    letter-spacing: .05em; font-variant-numeric: tabular-nums; text-align: right;
   }
 
-  /* iOS 开关滑块 */
-  .switch-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #fff;
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    box-shadow: 1px 1px 3px rgba(0,0,0,0.4);
-    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background 0.2s;
-  }
-
-  /* 开启状态 */
-  .switch-row.on .switch-track {
-    background: var(--accent);
-  }
-  .switch-row.on .switch-thumb {
-    transform: translateX(20px);
-  }
-  .switch-row.on .switch-label {
-    color: var(--accent);
-    font-weight: 600;
-  }
-
-  /* 特殊：易燃易爆开启状态 */
-  .switch-row[data-k="ex"].on .switch-track {
-    background: var(--danger);
-  }
-  .switch-row[data-k="ex"].on .switch-label {
-    color: var(--danger);
-  }
-
-  /* =========================================
-     结果区与评分 UI
-     ========================================= */
-  .res-header { font-size: 18px; font-weight: 800; color: #fff; margin: 24px 4px 12px; }
-  
   .result-tag {
-    position: absolute; top: 16px; right: 16px;
-    padding: 4px 12px; border-radius: 8px;
-    font-size: 16px; font-weight: 900; 
-    display: flex; align-items: center; justify-content: center;
-    font-variant-numeric: tabular-nums;
+    flex: none; padding: 0; border: 0; border-radius: 0; background: none;
+    font-family: var(--num); font-size: 20px; font-weight: 500; line-height: 1;
+    letter-spacing: .01em; font-variant-numeric: tabular-nums;
+    display: block; white-space: nowrap;
   }
-  .tag-red { color: #ff3b30; border: 1px solid rgba(255,59,48,0.4); background: rgba(255,59,48,0.1); }
-  .tag-yellow { color: #ffcc00; border: 1px solid rgba(255,204,0,0.4); background: rgba(255,204,0,0.1); }
-  .tag-green { color: #34c759; border: 1px solid rgba(52,199,89,0.4); background: rgba(52,199,89,0.1); }
+  /* 匹配度是数据，不是装饰：全部用墨色；只有第 1 名那一个读数转朱砂 */
+  .tag-red, .tag-yellow, .tag-green { color: var(--ink); }
+  #out .card.top .result-tag { color: var(--vermilion); }
 
-  .res-main-title { 
-    font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 4px; 
-    padding-right: 80px; word-break: break-all;
+  .res-main-title {
+    font-family: var(--serif); font-size: 19px; font-weight: 600; letter-spacing: .04em;
+    color: var(--ink); margin-bottom: 4px; word-break: break-word;
   }
-  .res-sub-title { font-size: 14px; color: var(--text-sub); margin-bottom: 20px; }
-  
-  .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .res-item span { display: block; font-size: 12px; font-weight: 600; color: var(--text-sub); margin-bottom: 4px; }
-  .res-item b { display: block; font-size: 15px; font-weight: 700; color: var(--text-main); }
-  
-  .res-warn { margin-top: 20px; padding: 16px; border-radius: 12px; background: rgba(255, 82, 82, 0.08); border: 1px solid rgba(255, 82, 82, 0.2); color: #ff8a80; font-size: 13px; line-height: 1.6; }
-  .res-warn b { color: var(--danger); font-weight: 800; }
-  .res-opt { margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--line); font-size: 13px; color: var(--text-sub); }
-  .res-opt b { color: var(--text-main); font-weight: 700; }
-  
-  .empty-state { text-align: center; padding: 32px 0; }
-  .empty-state h3 { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 8px; }
-  .empty-state p { font-size: 14px; color: var(--text-sub); }
+  .res-sub-title { font-size: 12.5px; color: var(--muted); letter-spacing: .05em; margin: 7px 0 15px; }
+  /* 结果卡标题可能是很长的系列名，允许在词内断行，不要顶到右侧读数 */
+  #out .card-title { word-break: break-word; }
+
+  .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 26px; }
+  .res-item span {
+    display: block; font-size: 11.5px; font-weight: 400; color: var(--muted);
+    letter-spacing: .04em; margin-bottom: 3px;
+  }
+  .res-item b { display: block; font-size: 14.5px; font-weight: 600; color: var(--ink); line-height: 1.5; }
+  /* 推荐理由与案例行是长句，退回正文字号，不做加粗强调 */
+  .res-grid .res-item[style*="grid-column"] b { font-weight: 400; font-size: 13.5px; color: var(--ink-2); line-height: 1.7; }
+
+  .res-warn {
+    margin-top: 18px; padding: 0 0 0 14px; border-radius: 0;
+    border-left: 2px solid var(--vermilion); background: none;
+    font-size: 13px; color: var(--ink-2); line-height: 1.75;
+  }
+  .res-warn b { color: var(--ink); font-weight: 600; }
+
+  .res-opt {
+    margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--rule-soft);
+    font-size: 12.5px; color: var(--muted); line-height: 1.75;
+  }
+  .res-opt b { color: var(--ink); font-weight: 600; }
+  /* 案例最近邻无同物料时的提醒：朱砂竖线，不带底色 */
+  .res-opt.res-note-warn {
+    margin-top: 16px; padding: 2px 0 2px 14px; border-top: 0;
+    border-left: 2px solid var(--vermilion); color: var(--ink-2);
+  }
+  .res-opt.res-note-warn b { color: var(--ink); }
+
+  /* ── 案例清单：发丝线分隔，来源退到标题行右侧 ─────────────── */
+  .case-list { margin-top: 0; }
+  .case-item { padding: 14px 0 13px; border-top: 1px solid var(--rule-soft); }
+  .case-head { display: flex; align-items: baseline; gap: 12px; }
+  .case-title { flex: 1; min-width: 0; font-size: 14.5px; font-weight: 600; line-height: 1.55; color: var(--ink); }
+  .case-src { flex: none; font-size: 11.5px; color: var(--muted); letter-spacing: .06em; }
+  .case-meta { margin-top: 2px; font-size: 12.5px; line-height: 1.7; color: var(--muted); }
+  .case-tag { font-size: 12.5px; line-height: 1.7; color: var(--ink-2); }
+  .case-tag b { font-weight: 600; color: var(--ink); }
+
+  /* 案例区引导句与脚注：正文语气，不做小标题 */
+  .res-intro {
+    margin: 0 0 2px; font-size: 13px; line-height: 1.75; color: var(--ink-2);
+  }
+  .case-warn {
+    margin: 10px 0 0; padding: 2px 0 2px 14px;
+    border-left: 2px solid var(--vermilion);
+    font-size: 12.5px; line-height: 1.75; color: var(--ink-2);
+  }
+  .case-warn b { display: block; font-weight: 600; color: var(--ink); }
+  .case-notes {
+    margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--rule-soft);
+    font-size: 12.5px; line-height: 1.8; color: var(--muted);
+  }
+  .case-notes p + p { margin-top: 7px; }
+  .case-notes b { font-weight: 600; color: var(--ink-2); }
+
+  /* 案例佐证：一个标签、每族一行，同名句式只说一次 */
+  .ev { margin: 0 0 13px; }
+  .ev-head { font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
+  .ev-row { display: grid; grid-template-columns: 5.5em 1fr; gap: 10px; line-height: 1.75; }
+  .ev-row b { font-weight: 600; color: var(--ink-2); }
+  .ev-row span { color: var(--muted); }
+  .ev-row.none span { color: var(--ink-2); }
+  @media (max-width: 560px) {
+    .ev-row { grid-template-columns: 4.4em 1fr; gap: 8px; }
+  }
+
+  .empty-state { text-align: center; padding: 36px 0; }
+  .empty-state h3 { font-family: var(--serif); font-size: 17px; font-weight: 600; color: var(--ink); margin-bottom: 6px; letter-spacing: .04em; }
+  .empty-state p { font-size: 13px; color: var(--muted); line-height: 1.75; }
+
+  /* 结果卡：读数已进 flex 流，只需控制节奏 */
+  #out .card { margin-top: 26px; }
+  /* 排名标记：「第/名」弱化，名次数字是唯一的强调色 */
+  .card-num i { font-style: normal; color: var(--muted); letter-spacing: .04em; margin-right: 3px; }
+  .card-num i:last-child { margin-right: 0; margin-left: 1px; }
+  #out .card-num { font-size: 12px; letter-spacing: .04em; color: var(--muted); }
+
+  /* ── 窄屏 ────────────────────────────────────────────── */
+  @media (max-width: 560px) {
+    body { padding: 24px 16px 56px; }
+    .header h1 { font-size: 21px; }
+    .card { margin-top: 26px; }
+    .switch-list { grid-template-columns: 1fr; }
+    .switch-row { min-height: 44px; }
+    .slider-value, .inline-input { font-size: 32px; }
+    .res-grid { grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+    .res-header { margin-top: 30px; }
+  }
 </style>
 </head>
 <body>
@@ -230,6 +368,7 @@
 
   <div class="header">
     <h1>粉体预选型</h1>
+    <p class="mastnote">填物料、产能、粒度与工艺属性，按粒度、产能、工艺链、分级精度和案例先验加权排序。</p>
   </div>
 
   <!-- 01 基础信息 -->
@@ -270,7 +409,7 @@
           </div>
         </div>
         <input type="range" id="capSlider" min="10" max="10000" step="10" value="500">
-        <div class="slider-ticks"><span>10</span><span>2,500</span><span>5,000</span><span>10,000</span></div>
+        <div class="slider-ticks"><span>10</span><span>2,500</span><span>5,000</span><span>10,000 kg/h</span></div>
       </div>
     </div>
   </div>
@@ -299,7 +438,7 @@
         <div class="slider-ticks" id="sizeTicks"><span>1</span><span>100</span><span>300</span><span>500</span></div>
       </div>
 
-      <div class="unit-switch" style="width: 100%; margin-top: 16px; padding: 4px;">
+      <div class="unit-switch" style="width: 100%; margin-top: 18px;">
         <button style="flex:1" data-v="D50" class="on">D50</button>
         <button style="flex:1" data-v="D90">D90</button>
         <button style="flex:1" data-v="D97">D97</button>
@@ -312,7 +451,7 @@
         <div class="slider-header">
           <span class="slider-label">入料粒度 <span style="opacity:.5;font-weight:400;">（可选）</span></span>
           <div class="slider-value-wrap">
-            <input id="feedInput" type="text" inputmode="decimal" placeholder="如 1000" style="width:104px;text-align:right;background:transparent;border:0;border-bottom:1px dashed rgba(0,0,0,.2);font:inherit;font-weight:700;color:var(--accent);padding:2px 4px;outline:none;">
+            <input id="feedInput" type="text" inputmode="decimal" placeholder="如 1000" class="inline-input" style="width:120px;">
             <span class="slider-unit">µm</span>
           </div>
         </div>
@@ -371,7 +510,7 @@
           <div class="switch-track"><div class="switch-thumb"></div></div>
         </div>
         <div class="switch-row" data-k="ex">
-          <span class="switch-label" style="color: var(--danger);">易燃易爆</span>
+          <span class="switch-label">易燃易爆</span>
           <div class="switch-track"><div class="switch-thumb"></div></div>
         </div>
         <div class="switch-row" data-k="pure">
@@ -1900,9 +2039,9 @@ let basis = 'D50';
 
 /* ============ 动画与颜色逻辑 ============ */
 function getDynamicColor(val, min, max) {
-  let p = (val - min) / (max - min);
-  let hue = 210 + p * 110;
-  return `hsl(${hue}, 100%, 65%)`;
+  // 锤子 OS 方向：只有一个朱砂色相，只调明度/饱和度做强弱，不做蓝→品红的扫色
+  let p = Math.max(0, Math.min(1, (val - min) / (max - min)));
+  return `hsl(8, ${62 + p * 8}%, ${44 - p * 9}%)`;
 }
 
 function animateNumber(el, targetVal, min, max) {
@@ -2306,13 +2445,13 @@ function makeReason(it, rank){
   const p=v=>Math.round((v||0)*100)+'%';
   if(s.A==null) return '按设备资料推荐，具体参数请结合工程师建议复核。';
   const bits=[];
-  bits.push('粒度 '+p(s.A)+(s.sizeModel?'（'+(s.sizeModel)+'）':'')+(s.sizeUnknown?'【族级估值】':''));
-  bits.push('产能 '+p(s.B)+(s.units>1?'（'+s.units+' 台并联）':'')+(s.capUnknown?'【族级估值】':''));
-  if(it.ratio!=null) bits.push('粉碎比 '+(+it.ratio.toFixed(1))+'→可行域 '+p(s.D));
+  bits.push('粒度匹配 '+p(s.A)+(s.sizeModel?'（'+s.sizeModel+'）':'')+(s.sizeUnknown?' · 族级估值':''));
+  bits.push('产能匹配 '+p(s.B)+(s.units>1?'（'+s.units+' 台并联）':'')+(s.capUnknown?' · 族级估值':''));
+  if(it.ratio!=null) bits.push('粉碎比 '+(+it.ratio.toFixed(1))+'（'+p(s.D)+'）');
   bits.push('分级精度 '+p(s.H));
-  bits.push('案例族先验 '+(s.fam&&s.fam.super?s.fam.super:'-')+' '+(s.P||0).toFixed(2));
-  const head=rank===1?'最符合':rank===2?'有发展':'性价比';
-  return head+'：'+bits.join('；')+'。';
+  bits.push('案例先验 '+(s.fam&&s.fam.super?s.fam.super+' ':'')+(s.P||0).toFixed(2));
+  const head=rank===1?'最符合':rank===2?'次选':'备选';
+  return head+' · '+bits.join(' · ');
 }
 
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -2408,6 +2547,8 @@ function matchCases(input, k) {
 }
 
 const _fmtCap = v => v >= 1000 ? (v / 1000).toFixed(v % 1000 === 0 ? 0 : 1) + ' t/h' : Math.round(v) + ' kg/h';
+/* 案例成品粒度常带三位小数（29.129），展示统一收到 1 位，不制造虚假精度 */
+const _fmtProd = v => { const n = +v; return Number.isFinite(n) ? String(Math.round(n * 10) / 10) : String(v); };
 const _escape = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /* 结果区里的「参考案例 + 案例佐证」 */
@@ -2435,32 +2576,42 @@ function caseSectionHtml(items, ctx) {
     else if (p.dMat < 0.5) why.push('同物料类别');
     if (p.dSize < 0.12) why.push('粒度相当');
     if (p.dCap < 0.25) why.push('产能相当');
-    return `<div class="res-item" style="grid-column:1/-1;align-items:flex-start;">
-        <span>${c.site === 'C' ? '中文站' : '英文站'}</span>
-        <b>${_escape(c.title)}<br>
-        <span style="font-weight:400;color:#6b7280;">${_escape(c.material)} · ${_fmtCap(c.cap)} · 成品 ${c.prod}μm(${_escape(c.basis)})${c.ratio ? ' · 粉碎比 ' + (c.ratio >= 10 ? Math.round(c.ratio) : c.ratio.toFixed(1)) : ''}<br>
-        官方标注族：<b style="color:#111;">${c.supers.map(s => CASE_SUPER_NAME[s] || s).join(' + ')}</b>${c.famLabel ? '（' + _escape(c.famLabel) + '）' : ''}${why.length ? ' · 相近点：' + why.join('、') : ''}</span></b>
+    return `<div class="case-item">
+        <div class="case-head">
+          <span class="case-title">${_escape(c.title)}</span>
+          <span class="case-src">${c.site === 'C' ? '中文站' : '英文站'}</span>
+        </div>
+        <div class="case-meta">${_escape(c.material)}，${_fmtCap(c.cap)}，成品 ${_fmtProd(c.prod)} μm（${_escape(c.basis)}）${c.ratio ? '，粉碎比 ' + (c.ratio >= 10 ? Math.round(c.ratio) : c.ratio.toFixed(1)) : ''}</div>
+        <div class="case-tag">官方标注族 <b>${c.supers.map(s => CASE_SUPER_NAME[s] || s).join(' + ')}</b>${c.famLabel ? '（' + _escape(c.famLabel) + '）' : ''}${why.length ? '，' + why.join('、') : ''}</div>
       </div>`;
   }).join('');
 
-  const badgeHtml = badge.map(b => {
+  const badgeRows = badge.map(b => {
     const supName = CASE_SUPER_NAME[b.sup] || b.sup;
-    const ranks = 'Top ' + b.ranks.join(' / ');
-    if (!b.n) return `<div class="res-opt"><b>反向佐证 · ${ranks}</b><br>最近 20 例里<b>没有</b>走「${supName}」路线的成交案例，这条路线在案例库中缺少先例，建议照上面的案例族复核。</div>`;
-    return `<div class="res-opt"><b>案例佐证 · ${ranks}</b><br>最近 20 例里有 <b>${b.n}</b> 例走的是「${supName}」路线${b.eg ? '，例如：' + _escape(b.eg.title) : ''}。</div>`;
+    const where = b.ranks.length === 1 ? `排序第 ${b.ranks[0]} 位` : `排序第 ${b.ranks.join('、')} 位`;
+    const n = b.ranks.length;
+    if (!b.n) return `<div class="ev-row none"><b>${supName}</b><span>${where}，近邻案例里没有这条路线，按上面的案例族复核</span></div>`;
+    return `<div class="ev-row"><b>${supName}</b><span>${where}，近邻案例里有 ${n} 例${b.eg ? '，如 ' + _escape(b.eg.title) : ''}</span></div>`;
   }).join('');
+  const badgeHtml = badge.length ? `<div class="ev"><div class="ev-head">案例佐证</div>${badgeRows}</div>` : '';
 
   // 案例库里找不到相近物料时，最近邻只是「粒度产能碰巧接近」，参考价值很低，必须说出来
   const noMat = picks.every(p => p.dMat >= 1);
-  const warn = noMat ? `<div class="res-opt" style="border-left:3px solid #f59e0b;"><b>注意</b><br>案例库里没有与该物料同类别的成交记录，下面 5 条只是粒度/产能恰好接近的其它物料项目，<b>参考价值有限</b>。</div>` : '';
+  const warn = noMat ? `<div class="case-warn"><b>案例库里没有同类物料</b>下面 5 条只是粒度/产能恰好接近的其它物料项目，参考价值有限。</div>` : '';
 
-  return `<div class="res-header">参考成交案例（ALPA 公开案例库 ${DATA_CASES.length} 例）</div>
-    <div class="card"><div class="card-body" style="padding-top:20px;">
-      <div class="res-sub-title">与当前工况最接近的 5 个真实项目（按物料 / 粒度 / 产能 / 粉碎比加权距离）</div>${warn}
-      <div class="res-grid">${rows}</div>
-      <div class="res-opt"><b>怎么用</b><br>案例族标注是 ALPA 官网自己的分类，属于「成交参考」而非唯一最优解；若排序结果与近邻案例族的走向差得远，优先按案例族复核。<br>
-      <b>口径提醒</b>：这里是按工况做的 1:1 最近邻检索，能保证「已知案例都能被找回」，<b>不等于设备排序全对</b>；案例参数摘自官网公开页面，<b>资料待确认</b>的部分需工程师复核。</div>
-    </div></div>${badgeHtml}`;
+  return `<div class="res-header">
+      <h2>参考成交案例</h2>
+      <span class="res-header-meta">案例库 ${DATA_CASES.length} 例，取最近 5 例</span>
+    </div>
+    <div class="card"><div class="card-body" style="padding-top:16px;">
+      <p class="res-intro">按物料、粒度、产能、粉碎比加权距离检索，下面是案例库里离当前工况最近的 5 个真实项目。</p>${warn}
+      <div class="case-list">${rows}</div>
+      <div class="case-notes">
+        ${badgeHtml}
+        <p><b>怎么用</b>　案例族标注是 ALPA 官网自己的分类，属于成交参考，不是唯一最优解。排序走向若与近邻案例族差得远，先按案例族复核。</p>
+        <p><b>口径</b>　这是按工况做的 1:1 最近邻检索，能保证已知案例都被找回，不等于设备排序全对；案例参数摘自官网公开页面，标「资料待确认」的部分需工程师复核。</p>
+      </div>
+    </div></div>`;
 }
 /* ==CASE_KB_LOGIC_END== */
 
@@ -3361,32 +3512,44 @@ function renderTop3(items, ctx){
 
   let warningHtml = '';
   if (ctx.attrs.includes('quartz') || ctx.attrs.includes('hard')) {
-    warningHtml += `<div class="res-warn"><b>工程师警告：</b><br>物料磨蚀性极强，严禁使用普通钢衬板。<br>推荐配置：<b>高铬合金耐磨衬板 + 高铬钢球 + 管道除铁器</b>。</div>`;
+    warningHtml += `<div class="res-warn"><b>磨蚀性极强</b>　严禁使用普通钢衬板。推荐配置：高铬合金耐磨衬板、高铬钢球、管道除铁器。</div>`;
   }
   if (ctx.attrs.includes('ex')) {
-    warningHtml += `<div class="res-warn"><b>防爆强制要求：</b><br>物料具有易燃易爆属性，系统必须配备<b>防爆电机、全密闭惰性气体（氮气）循环、静电接地及在线氧含量监测</b>。</div>`;
+    warningHtml += `<div class="res-warn"><b>防爆强制要求</b>　物料具有易燃易爆属性，系统必须配备防爆电机、全密闭氮气循环、静电接地与在线氧含量监测。</div>`;
   }
+
+  // 引擎在系列未拆型号时会把粒度区间当“型号”返回，不能当型号展示
+  const isModelName = m => !!m && !/^(D\d{2,3}|[<>≤≥])/i.test(m) && !/μm|um\b|目/.test(m);
+  const seriesSpan = d => {
+    const list = String(d.m || '').split(';').map(s => s.replace(/[:：].*$/, '').trim()).filter(Boolean);
+    if (list.length < 2) return '';
+    return `${list[0]}–${list[list.length - 1]}`;
+  };
+  const fmtNum = v => (v == null || v === '') ? '' : (+v > 1000 ? Math.round(v).toLocaleString() : String(Math.round(v * 10) / 10));
 
   const cards = items.map((it,idx)=>{
     const d=it.dev;
     const pm=pickModel(d, ctx.cap, ctx.sizeInfo);
     // 引擎已按型号级联合打分选出型号（capModel/sizeModel），优先用它，保证「打分的型号」和「展示的型号」是同一台
-    const model=it.model ? it.model : (pm.model ? pm.model : (d.m? '（具体型号请咨询工程师）' : '型号待定'));
+    const model=it.model ? it.model : (pm.model ? pm.model : '');
+    const span=seriesSpan(d);
+    const modelCell = isModelName(model) ? esc(model)
+      : (span ? `系列 ${span}` : '按工况定');
     const pct=Math.min(99, Math.max(35, Math.round(it.total)));
     const tagCls = pct>=80?'tag-green':(pct>=60?'tag-yellow':'tag-red');
     const rs=parseDevSizeRanges(d.size);
     const sizeTxt = rs.ranges.length ? (rs.type==='D97'?'D97 ': rs.type==='D50'?'D50 ':'') + rs.ranges[0].min+'–'+rs.ranges[0].max+' µm' : '见产品样册';
     const candNote = ctx.isCandidate ? `<div class="res-opt"><b>提示</b><br>候选设备，存在未完全满足项，请结合工程师建议评估。</div>` : '';
     return `
-      <div class="card">
-        <div class="result-tag ${tagCls}">${pct}%</div>
-        <div class="card-body" style="padding-top: 24px;">
+      <div class="card${idx===0?' top':''}">
+        <div class="card-body" style="padding-top: 0;">
           <div class="card-head" style="padding: 0 0 8px;">
-            <div class="card-title-wrap"><span class="card-num">Top ${idx+1}</span><span class="card-title">${esc(d.n)}</span></div>
+            <div class="card-title-wrap"><span class="card-num"><i>第</i>${idx+1}<i>名</i></span><span class="card-title">${esc(d.n)}</span></div>
+            <div class="result-tag ${tagCls}">${pct}%</div>
           </div>
-          <div class="res-sub-title">${esc(d.c)} · ${esc(model)}</div>
+          <div class="res-sub-title">${esc(d.c)}</div>
           <div class="res-grid">
-            <div class="res-item"><span>推荐型号</span><b>${esc(model)}</b></div>
+            <div class="res-item"><span>推荐型号</span><b>${modelCell}</b></div>
             <div class="res-item"><span>可达粒度</span><b>${sizeTxt}</b></div>
             <div class="res-item" style="grid-column: 1 / -1;"><span>推荐理由</span><b>${esc(makeReason(it,idx+1))}</b></div>
           </div>
@@ -3396,7 +3559,9 @@ function renderTop3(items, ctx){
       </div>`;
   }).join('');
 
-  outEl.innerHTML = `<div class="res-header">智能匹配结果</div>${cards}${warningHtml}` + caseSectionHtml(items, ctx);
+  const headMeta = [ctx.name, ctx.sizeInfo && `${ctx.sizeInfo.key} ${fmtNum(ctx.sizeInfo.um)} µm`, `${fmtNum(ctx.cap)} kg/h`]
+    .filter(Boolean).join('，');
+  outEl.innerHTML = `<div class="res-header"><h2>智能匹配结果</h2><span class="res-header-meta">${esc(headMeta)}</span></div>${warningHtml}${cards}` + caseSectionHtml(items, ctx);
 }
 
 $('go').addEventListener('click', evaluate);
