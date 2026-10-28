@@ -46,16 +46,20 @@ if (i < 0 || j < 0) {
   process.exit(1);
 }
 const old = html.slice(i, j + END.length);
-if (old === block) {
+// index.html 全文是 CRLF，脚本生成的 block 是 LF；直接比字符串会永远"需要更新"，
+// 所以先归一化换行再比（写回时才统一成 CRLF）。
+const lf = x => x.replace(/\r\n/g, '\n');
+if (lf(old) === lf(block)) {
   console.log('已是目标状态（' + rows.length + ' 例），无需改动。');
   process.exit(0);
 }
 if (check) {
-  console.log('需要更新：当前 ' + (old.match(/\],\[/g) || []).length + 1 + ' 例 → 目标 ' + rows.length + ' 例');
-  process.exit(0);
+  const nOld = (lf(old).match(/\["[CE]",/g) || []).length;
+  console.log('需要更新：当前 ' + nOld + ' 例 → 目标 ' + rows.length + ' 例');
+  process.exit(1);
 }
-html = html.slice(0, i) + block + html.slice(j + END.length);
-fs.writeFileSync(HTML, html);
-console.log('已写入 index.html：' + rows.length + ' 例（中文 ' + cases.filter(c => c.site === 'CN').length +
-  ' / 英文 ' + cases.filter(c => c.site === 'EN').length + '，弱标注 ' +
-  cases.filter(c => c.labelSource === 'title-inferred').length + ' 例）');
+
+// 只替换标记块本身，其余 HTML 原样保留；写回统一 CRLF（index.html 全文是 CRLF）
+const next = html.slice(0, i) + block + html.slice(j + END.length);
+fs.writeFileSync(HTML, lf(next).replace(/\n/g, '\r\n'), 'utf8');
+console.log('已写入 ' + rows.length + ' 例案例库');

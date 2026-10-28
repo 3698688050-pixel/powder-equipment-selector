@@ -4,13 +4,21 @@
  *         data/cases-*.tsv（官网案例，CN 99 训练 / EN 64 跨站留出）
  * 原则：任何打分项都是「对全体案例成立」的函数；不含按案例标题查表的记忆项。
  */
-const fs = require('fs');
-const path = require('path');
-const ROOT = path.join(__dirname, '..');
-
+// 同一份源码要同时跑在 node（离线评估）和浏览器（index.html 线上打分）里，
+// 所以数据获取走两条路：node 从 index.html 文本里截取，浏览器直接用页面已有的全局常量。
+// 浏览器侧由 tools/build-engine-embed.js 打包注入，`_DOM` 就是它塞进来的那个 shim；
+// 这样线上排序和离线评估用的是同一份 score()，不会出现两套实现各自漂移。
+const _SHIM = typeof _DOM !== 'undefined' ? _DOM : null;
+let fs = null, path = null, ROOT = null, H = '';
+if (!_SHIM) {
+  fs = require('fs');
+  path = require('path');
+  ROOT = path.join(__dirname, '..');
+  H = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+}
 // ---------- 从 index.html 提取数据 ----------
-const H = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 function cut(name, endName) {
+  if (_SHIM) { const v = _SHIM[name]; if (v === undefined) throw new Error('浏览器 shim 缺 ' + name); return v; }
   const i = H.indexOf('const ' + name + ' =');
   const j = endName ? H.indexOf('const ' + endName + ' =') : H.length;
   if (i < 0 || j < 0) throw new Error('index.html 中找不到 ' + name);
@@ -225,7 +233,28 @@ function sizeToUm(txt) {
   return v;
 }
 
+/**
+ * 把页面内联的 DATA_CASES 行还原成与 loadCases() 同样的案例对象。
+ * 行格式：[站点,标题,行业,物料,产能kg/h,入料μm,成品μm,粒度基准,设备族,原始族标签]
+ * 站点 'C'/'E'；设备族是 ALPA 自己的族标签（+ 连接），已经等于 SUPERS 口径。
+ */
+function casesFromRows(rows) {
+  const out = [];
+  (rows || []).forEach((r, i) => {
+    const supers = new Set(String(r[8] || '').split('+').map(s => s.trim()).filter(Boolean));
+    out.push({
+      site: r[0] === 'C' ? 'CN' : 'EN', id: 'row' + i, title: r[1],
+      ind: String(r[2] || '').replace(/应用案例$/, '').trim(), famLabel: r[9] || '',
+      material: r[3], capTxt: '', cap: +r[4] || 0, feed: +r[5] || 0,
+      prodTxt: '', prod: +r[6] || 0, basis: r[7] || 'D97', supers,
+      labelSource: r[9] ? 'list-tag + title' : 'title-inferred'
+    });
+  });
+  return out.filter(c => c.prod > 0 && c.cap > 0 && c.supers.size);
+}
+
 function loadCases() {
+  if (_SHIM) return casesFromRows(_SHIM.DATA_CASES);
   const cn = fs.readFileSync(path.join(ROOT, 'data/cases-cn-99.tsv'), 'utf8').trim().split('\n').slice(1).map(l => l.split('\t'));
   const en = fs.readFileSync(path.join(ROOT, 'data/cases-en-64.tsv'), 'utf8').trim().split('\n').slice(1).map(l => l.split('\t'));
   const out = [];
@@ -233,7 +262,9 @@ function loadCases() {
     const [, title, ind, fam, material, capTxt, , , feedUm, prodTxt, prodUm] = r;
     const supers = famToSupers(fam, title);
     out.push({
-      site: 'CN', id: r[0], title, ind: ind.replace(/\s*\/\s*$/, '').trim(), famLabel: fam,
+      // 中文站的行业列带着「应用案例」后缀（"电池材料应用案例"），不剥掉就落不进 IND2CLASS，
+      // 物料大类这一级先验（k / kr / full 分格）会全部退化成 other。
+      site: 'CN', id: r[0], title, ind: ind.replace(/\s*\/\s*$/, '').replace(/应用案例$/, '').trim(), famLabel: fam,
       material, capTxt, cap: +capToKgH(capTxt) || 0, feed: +feedUm || 0,
       prodTxt, prod: +prodUm || 0, basis: 'D' + (String(prodTxt).match(/D(\d+)/) || [, '97'])[1],
       supers, labelSource: fam && fam !== '未标注' ? 'list-tag + title' : 'title-inferred'
@@ -437,6 +468,6 @@ function familyFallback(train) {
 
 module.exports = {
   DATA, MATS, CAT_ALIAS, SWITCH_TAG, TAG_SWITCH, SUPERS, TAGRE, ALIAS,
-  parseDevSizeRanges, parseDevCaps, parseModels, matchTag, devFamily, famToSupers, loadCases,
+  parseDevSizeRanges, parseDevCaps, parseModels, matchTag, devFamily, famToSupers, loadCases, casesFromRows,
   findMat, caseTags, buildPrior, priorDist, familyFallback, familyMarginals, marginal, feats, MATCL, numOf, capToKgH, sizeToUm
 };

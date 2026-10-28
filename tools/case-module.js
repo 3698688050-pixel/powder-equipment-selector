@@ -89,12 +89,16 @@ function caseSectionHtml(items, ctx) {
   const picks = matchCases(input, 5);
   if (!picks.length) return '';
 
-  // 案例佐证：近 20 例里，与该设备族一致的案例数
+  // 案例佐证：近 20 例里，与该设备族一致的案例数。同族的多名候选合并成一条，
+  // 否则 Top1/Top2/Top3 同族时会重复三遍一模一样的话。
   const near = matchCases(input, 20);
-  const badge = items.map(it => {
+  const badge = [];
+  items.forEach((it, i) => {
     const sup = devSuperOf(it.dev);
     const hit = near.filter(p => p.c.supers.includes(sup));
-    return { sup, n: hit.length, eg: hit[0] && hit[0].c };
+    const got = badge.find(b => b.sup === sup);
+    if (got) got.ranks.push(i + 1);
+    else badge.push({ sup, ranks: [i + 1], n: hit.length, eg: hit[0] && hit[0].c });
   });
 
   const rows = picks.map(p => {
@@ -112,16 +116,22 @@ function caseSectionHtml(items, ctx) {
       </div>`;
   }).join('');
 
-  const badgeHtml = badge.map((b, i) => {
-    if (!b.n) return '';
-    const name = items[i].dev.n;
-    return `<div class="res-opt"><b>案例佐证 · Top ${i + 1}</b><br>最近 20 例里有 <b>${b.n}</b> 例走的是「${CASE_SUPER_NAME[b.sup] || b.sup}」路线${b.eg ? '，例如：' + _escape(b.eg.title) : ''}。</div>`;
+  const badgeHtml = badge.map(b => {
+    const supName = CASE_SUPER_NAME[b.sup] || b.sup;
+    const ranks = 'Top ' + b.ranks.join(' / ');
+    if (!b.n) return `<div class="res-opt"><b>反向佐证 · ${ranks}</b><br>最近 20 例里<b>没有</b>走「${supName}」路线的成交案例，这条路线在案例库中缺少先例，建议照上面的案例族复核。</div>`;
+    return `<div class="res-opt"><b>案例佐证 · ${ranks}</b><br>最近 20 例里有 <b>${b.n}</b> 例走的是「${supName}」路线${b.eg ? '，例如：' + _escape(b.eg.title) : ''}。</div>`;
   }).join('');
+
+  // 案例库里找不到相近物料时，最近邻只是「粒度产能碰巧接近」，参考价值很低，必须说出来
+  const noMat = picks.every(p => p.dMat >= 1);
+  const warn = noMat ? `<div class="res-opt" style="border-left:3px solid #f59e0b;"><b>注意</b><br>案例库里没有与该物料同类别的成交记录，下面 5 条只是粒度/产能恰好接近的其它物料项目，<b>参考价值有限</b>。</div>` : '';
 
   return `<div class="res-header">参考成交案例（ALPA 公开案例库 ${DATA_CASES.length} 例）</div>
     <div class="card"><div class="card-body" style="padding-top:20px;">
-      <div class="res-sub-title">与当前工况最接近的 5 个真实项目（按物料 / 粒度 / 产能 / 粉碎比加权距离）</div>
+      <div class="res-sub-title">与当前工况最接近的 5 个真实项目（按物料 / 粒度 / 产能 / 粉碎比加权距离）</div>${warn}
       <div class="res-grid">${rows}</div>
-      <div class="res-opt"><b>怎么用</b><br>案例族标注是 ALPA 官网自己的分类，属于「成交参考」而非唯一最优解；若排序结果与近邻案例族的走向差得远，优先按案例族复核。</div>
+      <div class="res-opt"><b>怎么用</b><br>案例族标注是 ALPA 官网自己的分类，属于「成交参考」而非唯一最优解；若排序结果与近邻案例族的走向差得远，优先按案例族复核。<br>
+      <b>口径提醒</b>：这里是按工况做的 1:1 最近邻检索，能保证「已知案例都能被找回」，<b>不等于设备排序全对</b>；案例参数摘自官网公开页面，<b>资料待确认</b>的部分需工程师复核。</div>
     </div></div>${badgeHtml}`;
 }

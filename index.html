@@ -306,6 +306,18 @@
         <button style="flex:1" data-v="D99">D99</button>
         <button style="flex:1" data-v="D100">D100</button>
       </div>
+
+      <!-- 入料粒度（可选）：给了才算粉碎比，才能用上「分级只切分布、不造细」这条判据 -->
+      <div class="slider-container" style="margin-top: 18px;">
+        <div class="slider-header">
+          <span class="slider-label">入料粒度 <span style="opacity:.5;font-weight:400;">（可选）</span></span>
+          <div class="slider-value-wrap">
+            <input id="feedInput" type="text" inputmode="decimal" placeholder="如 1000" style="width:104px;text-align:right;background:transparent;border:0;border-bottom:1px dashed rgba(0,0,0,.2);font:inherit;font-weight:700;color:var(--accent);padding:2px 4px;outline:none;">
+            <span class="slider-unit">µm</span>
+          </div>
+        </div>
+        <div class="slider-ticks" style="margin-top: 8px;"><span>不确定就不填，粉碎比按中性处理</span></div>
+      </div>
     </div>
   </div>
 
@@ -2077,6 +2089,10 @@ matEl.addEventListener('input', () => {
 });
 
 /* ============ v5 工具函数 ============ */
+// 入料粒度（可选）：非空才参与打分。引擎用它算粉碎比，并驱动「分级只切分布」的门控。
+const feedEl = $('feedInput');
+function readFeedUm(){ const v = parseFloat(String(feedEl && feedEl.value || '').replace(/[^\d.]/g, '')); return isFinite(v) && v > 0 ? v : 0; }
+
 function parseNum(s){ if(s==null||s==='') return null; const m=String(s).replace(/,/g,'').match(/(\d+(?:\.\d+)?)/); return m?parseFloat(m[1]):null; }
 
 const MESH_UM={10:2000,16:1180,20:850,30:600,40:425,50:300,60:250,70:212,80:180,100:150,120:125,140:106,170:90,200:75,230:63,270:53,325:45,400:38,500:25,635:20,800:15,1000:13,1250:10,2500:5,5000:2.5};
@@ -2286,23 +2302,17 @@ function cleanSell(sell){
 }
 
 function makeReason(it, rank){
-  const d=it.dev;
-  const devTxt=(d.c+' '+d.n+' '+d.feat+' '+d.sell+' '+d.prin);
-  let kw='最符合', orient='综合匹配度最高';
-  if(rank===2){ kw='有发展'; orient='关键维度突出，具备升级潜力'; }
-  else if(rank>=3){ kw='性价比'; orient='匹配均衡、投入产出比高'; }
-  let body='';
-  if(/MQPW|分级转子|分级涡轮/.test(devTxt)) body='带分级转子，粒度分布窄可调';
-  else if(/MQP|自分级|无转动/.test(devTxt)) body='自分级结构，团聚体打散还原佳';
-  else if(/流化床|自碰撞|无机械磨损/.test(devTxt)) body='流化床自碰撞，产品纯度高';
-  else if(/气流/.test(d.c)) body='气流粉碎粒形好';
-  else if(/分级/.test(d.c)) body='分级精度高、粒度可控';
-  else if(/改性/.test(d.c)) body='表面改性工艺成熟';
-  else body='机械粉碎适应性强';
-  if(it.purScore>=0.9&&it.clsScore>=0.9) body='自碰撞+分级轮双优，适配高纯窄分布';
-  else if(it.purScore>=0.9) body='物料自碰撞无机械磨损，纯度高';
-  else if(it.clsScore>=0.9) body='分级精度突出，粒度分布窄';
-  return kw+'：'+body+'，'+orient+'。';
+  const s=it.s||{};
+  const p=v=>Math.round((v||0)*100)+'%';
+  if(s.A==null) return '按设备资料推荐，具体参数请结合工程师建议复核。';
+  const bits=[];
+  bits.push('粒度 '+p(s.A)+(s.sizeModel?'（'+(s.sizeModel)+'）':'')+(s.sizeUnknown?'【族级估值】':''));
+  bits.push('产能 '+p(s.B)+(s.units>1?'（'+s.units+' 台并联）':'')+(s.capUnknown?'【族级估值】':''));
+  if(it.ratio!=null) bits.push('粉碎比 '+(+it.ratio.toFixed(1))+'→可行域 '+p(s.D));
+  bits.push('分级精度 '+p(s.H));
+  bits.push('案例族先验 '+(s.fam&&s.fam.super?s.fam.super:'-')+' '+(s.P||0).toFixed(2));
+  const head=rank===1?'最符合':rank===2?'有发展':'性价比';
+  return head+'：'+bits.join('；')+'。';
 }
 
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -2311,7 +2321,7 @@ function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,
 // 案例库：ALPA 官网中文 99 例（含 6 例列表页无设备族标签、按标题弱标注）+ 英文站 64 例。
 // 字段：[站点, 标题, 行业, 物料, 产能kg/h, 入料μm, 成品μm, 粒度基准, 设备族, 原始族标签]
 // 由 tools/build-cases-embed.js 生成，请勿手改；案例增补后重跑该脚本即可。
-const DATA_CASES=[["C","深圳某电动汽车公司磷酸铁锂和单晶三元气流粉碎机生产线","电池材料应用案例","磷酸铁锂、单晶三元材料",500,1000,3.44,"D50","气流磨","气流粉碎机(未细分)"],["C","北京某公司豌豆分离蛋白机械粉碎机生产线","食品/保健品/化妆品应用案例","豌豆分离蛋白",2000,2500,19.7,"D90","机械磨","机械粉碎(空气分级磨)"],["C","3M新材料工厂树脂机械粉碎机生产线","高新材料应用案例","树脂",2500,154,5,"D50","机械磨","机械粉碎(空气分级磨)"],["C","佛山某调味品生产企业订购炒麦机械粉碎机生产线","食品/保健品/化妆品应用案例","炒麦",500,4000,35.3,"D90","机械磨","机械粉碎(空气分级磨)"],["C","宁德某新材料工厂单晶三元材料气流粉碎机生产线","电池材料应用案例","单晶三元材料",500,1000,3.5,"D50","气流磨","气流粉碎机(未细分)"],["C","上海巴斯夫实验室使用的三合一气流粉碎机","高新材料应用案例","三元材料",10,154,3.66,"D90","实验室","三合一实验机"],["C","中石油隶属研究院实验室使用的三合一气流粉碎分级机","高新材料应用案例","硫酸钡",5,154,1.65,"D50","实验室","三合一实验机"],["C","中国科学院三合一气流粉碎机","高新材料应用案例","活性炭",2,1000,3.4,"D50","实验室","三合一实验机"],["C","中建材集团所属公司石英研磨分级生产线","非金属矿应用案例","石英粉",625,55,10,"D100","球磨线+分级","球磨分级线"],["C","云南某集团公司研究院催化剂粉碎生产线","粉末冶金应用案例","催化剂",200,154,8.12,"D97","气流磨","流化床气流磨"],["C","山东某生物科技公司玉米淀粉气流分级生产线","精细化工应用案例","玉米淀粉",875,77,51,"D97","分级","气流分级机/线"],["C","北京某化工企业 脱硫剂 机械粉碎机生产线","环保脱硫应用案例","脱硫剂",3000,1000,15,"D90","机械磨","机械粉碎(空气分级磨)"],["C","山西地区大型焦化企业烟气脱硫脱硝设备","环保脱硫应用案例","碳酸氢钠",1000,154,5.84,"D90","机械磨+气流磨","未标注"],["C","潍坊某新材料公司碳酸钙打散改性生产线","非金属矿应用案例","碳酸钙",1000,154,41.2,"D97","改性","三辊磨"],["C","泰国某矿物工厂重质碳酸钙改性生产线","非金属矿应用案例","重质碳酸钙",3000,10,10,"D97","改性+机械磨","涡流磨(改性/打散)"],["C","塞尔维亚某矿物工厂重质碳酸钙球磨分级+改性生产线","非金属矿应用案例","重质碳酸钙",750,10,10,"D97","改性+机械磨+球磨线","涡流磨(改性/打散)"],["C","福建某矿物制品公司硅土干燥打散改性生产线","非金属矿应用案例","硅土",1000,47.38461538461539,8.1,"D97","机械磨","转子磨/蜂巢磨"],["C","阳原县某粘土公司膨润土气流分级生产线","非金属矿应用案例","膨润土",5000,47.38461538461539,10,"D97","分级","气流分级机/线"],["C","山西某造纸工厂煤矸石粉气流分级生产线","非金属矿应用案例","煤矸石粉",6000,5000,6.55,"D97","分级","气流分级机/线"],["C","北京某科技公司金属粉末气流分级生产线","粉末冶金应用案例","不锈钢粉末",500,77,9.38,"D90","分级","气流分级机/线"],["C","深圳某电池材料公司三合一粉碎实验设备","电池材料应用案例","磷酸铁锂",10,20,0.7,"D50","实验室","三合一实验机"],["C","天津某新材料科技公司钴酸锂/三元材料生产线","电池材料应用案例","钴酸锂/三元材料",500,2000,10,"D50","机械磨","机械粉碎(空气分级磨)"],["C","南通某新材料公司三元材料超微粉碎生产线","电池材料应用案例","三元材料",500,2000,10,"D50","机械磨","机械粉碎(空气分级磨)"],["C","合肥某电池材料公司三元材料机械、气流粉碎生产线","电池材料应用案例","三元材料",500,2000,10,"D50","机械磨+气流磨","机械粉碎(空气分级磨)"],["C","广东某循环科技公司三元材料粉碎生产线","电池材料应用案例","三元材料",500,2000,4.36,"D50","机械磨","机械粉碎(空气分级磨)"],["C","广州某食品公司白砂糖粉碎生产线","食品/保健品/化妆品应用案例","白砂糖",2000,2500,98.9,"D90","机械磨+气流磨","未标注"],["C","山东某阿胶公司冻干驴奶粉粉碎生产线","食品/保健品/化妆品应用案例","冻干驴奶粉",100,1000,115,"D90","机械磨","锤式磨"],["C","辽宁某集团葡萄糖超微粉碎生产线","食品/保健品/化妆品应用案例","葡萄糖",750,1000,26.4,"D90","气流磨+机械磨","未标注"],["C","山西某电力公司粉煤灰粉碎加工生产线","建材及固废应用案例","粉煤灰",5000,1000,9,"D97","蒸汽","蒸汽动能磨"],["C","福建某化工公司沉淀法白炭黑超微气流粉碎生产线","精细化工应用案例","沉淀法白炭黑",1000,154,3,"D50","气流磨","流化床气流磨"],["C","青岛某高科新材料公司锰酸锂超微粉碎生产线","电池材料应用案例","锰酸锂",300,2000,10,"D50","气流磨","流化床气流磨"],["C","重庆某新能源材料公司磷酸铁锂超微粉碎生产线","电池材料应用案例","磷酸铁锂",2000,1000,1,"D50","蒸汽","蒸汽动能磨"],["C","成都某科技公司单晶三元材料超微粉碎生产线","电池材料应用案例","单晶三元材料",300,1000,3.75,"D50","气流磨","圆盘式气流磨"],["C","山东省某药业公司扑热息痛生产线","医药应用案例","扑热息痛",300,1000,32.2,"D90","气流磨","未标注"],["C","广东某药业公司原料药超微粉碎生产线","医药应用案例","原料药",7.5,1000,7.6,"D90","气流磨+机械磨","未标注"],["C","陕西某大学银浆超微打散粉碎生产线","粉末冶金应用案例","银浆",20,1000,1.74,"D50","机械磨","未标注"],["C","山东某制药公司布洛芬超微粉碎生产线","医药应用案例","布洛芬",625,1000,10,"D95","气流磨+机械磨","未标注"],["C","吉林省某制药公司原料药气流粉碎生产线","医药应用案例","原料药",15,1000,8,"D90","气流磨","气流粉碎机(未细分)"],["C","广东某矿业矿物工厂石英粉气流分级生产线","非金属矿应用案例","石英粉",6250,68.3,39.6,"D97","分级","气流分级机/线"],["C","越南某矿物工厂锆英砂球磨分级生产线","非金属矿应用案例","锆英砂",1250,63.5645,29.129,"D98","球磨线+分级","球磨分级线"],["C","贵州某锰业工厂二氧化锰气流分级生产线","电池材料应用案例","二氧化锰",400,51.333333333333336,38.8,"D97","分级","气流分级机/线"],["C","山东某矿物工厂石英粉球磨分级生产线","非金属矿应用案例","石英粉",5000,67.35,37.7,"D97","球磨线+分级","球磨分级线"],["C","河北某化工厂碳微球气流分级生产线","电池材料应用案例","碳微球",500,77,5,"D97","分级","气流分级机/线"],["C","山东某造纸厂碳酸钙改性生产线","非金属矿应用案例","碳酸钙",1000,154,5,"D97","改性+机械磨","涡流磨(改性/打散)"],["C","山东某食品添加剂厂黄原胶生产线","精细化工应用案例","黄原胶",500,1000,39,"D97","改性+机械磨","涡流磨(改性/打散)"],["C","越南某矿物工厂重质碳酸钙球磨分级生产线","非金属矿应用案例","重质碳酸钙",3000,10,10,"D97","球磨线+分级","球磨分级线"],["C","广东某化工厂轻质碳酸钙干燥打散生产线","非金属矿应用案例","轻质碳酸钙",2000,154,9.11,"D97","机械磨","转子磨/蜂巢磨"],["C","沙特某复合肥公司硫酸钾粉碎生产线","精细化工应用案例","硫酸钾",2000,2000,15.4,"D90","机械磨","转子磨/蜂巢磨"],["C","浏阳某烟草公司烟梗粉碎生产线","其他材料应用案例","烟梗",800,50000,74.7,"D97","机械磨","转子磨/蜂巢磨"],["C","江西某水泥厂碳酸钙分级生产线","非金属矿应用案例","碳酸钙",1500,19.25,4.45,"D97","分级","气流分级机/线"],["C","营口市某集团公司氧化镁改性生产线","精细化工应用案例","氧化镁",1250,10,10,"D97","改性+机械磨","涡流磨(改性/打散)"],["C","江苏某新材料工厂氧化锌粉分级生产线","精细化工应用案例","氧化锌粉",300,47.38461538461539,5,"D97","分级","气流分级机/线"],["C","上海某化工公司聚乙烯醇超细粉碎生产线","精细化工应用案例","聚乙烯醇",500,770,200,"D97","机械磨","机械粉碎(空气分级磨)"],["C","河南南阳某焦化厂脱硫剂粉碎生产线","环保脱硫应用案例","脱硫剂",500,1000,14.3,"D90","机械磨","机械粉碎(空气分级磨)"],["C","广东某饲料厂木薯淀粉粉碎生产线","其他材料应用案例","木薯淀粉",1000,25000,46.3,"D90","机械磨","机械粉碎(空气分级磨)"],["C","山东某集团公司果胶粉碎生产线","食品/保健品/化妆品应用案例","果胶",300,4000,33.4,"D90","机械磨","机械粉碎(空气分级磨)"],["C","安徽砀山某果业公司果胶粉碎生产线","食品/保健品/化妆品应用案例","果胶",300,4000,39.3,"D90","机械磨","针盘磨"],["C","山东某颜料厂有机颜料超微粉碎生产线","颜料/染料应用案例","有机颜料",300,4000,15.1,"D90","机械磨","机械粉碎(空气分级磨)"],["C","山东某集团农化公司精喹禾灵粉碎生产线","精细化工应用案例","精喹禾灵",1000,513.3333333333334,45.9,"D90","机械磨","机械粉碎(空气分级磨)"],["C","宁夏某化工公司蛋氨酸粉碎生产线","精细化工应用案例","蛋氨酸",1000,1000,33.8,"D97","机械磨","针盘磨"],["C","厦门某能源材料公司钴酸锂/三元材料超微粉碎生产线","电池材料应用案例","钴酸锂/三元材料",500,2000,10,"D50","机械磨","机械粉碎(空气分级磨)"],["C","湖南某制药公司原料药超微粉碎生产线","医药应用案例","原料药",150,1000,39.9,"D90","机械磨","锤式磨"],["C","泗洪县某洗涤用品厂皂粉超微粉碎生产线","精细化工应用案例","皂粉",500,5500,69.8,"D90","机械磨","锤式磨"],["C","青岛某化工厂油漆渣超微粉碎生产线","建材及固废应用案例","油漆渣",1000,15000,49.5,"D90","机械磨","锤式磨"],["C","山东某食品厂白砂糖粉碎生产线","食品/保健品/化妆品应用案例","白砂糖",1000,2500,45.7,"D90","机械磨","针盘磨"],["C","台湾某化工厂碳酸钙超微粉碎生产线","精细化工应用案例","碳酸钙",2000,1000,4,"D90","机械磨","针盘磨"],["C","湖南某新材料产业园单晶三元材料超微粉碎生产线","电池材料应用案例","单晶三元材料",300,1000,3.5,"D50","气流磨","圆盘式气流磨"],["C","佛山市某实业公司单晶三元材料粉碎生产线","电池材料应用案例","单晶三元材料",300,1000,3.5,"D50","气流磨","圆盘式气流磨"],["C","山东某医药集团公司原料药气流粉碎生产线","医药应用案例","原料药",15,1000,10,"D90","气流磨","气流粉碎机(未细分)"],["C","河北某药业公司青霉素粉碎生产线","医药应用案例","青霉素",300,1000,15,"D90","气流磨","圆盘式气流磨"],["C","浙江某药业公司原料药气流粉碎生产线","医药应用案例","原料药",7.5,1000,3.62,"D90","气流磨","圆盘式气流磨"],["C","浙江某药业公司氯沙坦钾气流粉碎生产线","医药应用案例","氯沙坦钾",90,1000,7.45,"D90","气流磨","气流粉碎机(未细分)"],["C","韩国某株式会社米粉气流粉碎生产线","食品/保健品/化妆品应用案例","米粉",450,3000,27.5,"D90","气流磨","流化床气流磨"],["C","江苏某新材料公司电子级超纯石英分级生产线","非金属矿应用案例","电子级超纯石英",40,15,8,"D100","分级","气流分级机/线"],["C","江西某锂业公司碳酸锂粉碎生产线","电池材料应用案例","碳酸锂",1250,192.5,5,"D50","气流磨","流化床气流磨"],["C","贵州某粉体工业公司重晶石气流粉碎生产线","非金属矿应用案例","重晶石",500,47.38461538461539,2.5,"D97","气流磨","流化床气流磨"],["C","江阴某化工集团公司磷酸氢钙气流粉碎生产线","精细化工应用案例","磷酸氢钙",3000,154,36.5,"D99","气流磨","流化床气流磨"],["C","希腊某建材厂超细水泥超微粉碎生产线","建材及固废应用案例","超细水泥",500,47.38461538461539,11,"D97","机械磨","振动磨"],["C","浙江某建材厂超细水泥粉碎生产线","建材及固废应用案例","超细水泥",600,47.38461538461539,7.5,"D90","机械磨","振动磨"],["C","绍兴某茶业公司抹茶超微粉碎生产线","食品/保健品/化妆品应用案例","抹茶",300,1000,10,"D90","机械磨","振动磨"],["C","辽宁某化矿集团公司滑石粉超微粉碎生产线","非金属矿应用案例","滑石粉",400,154,2,"D50","蒸汽","蒸汽动能磨"],["C","山西某大型煤矿集团粉煤灰蒸汽粉碎生产线","建材及固废应用案例","粉煤灰",10000,1000,10,"D97","蒸汽","蒸汽动能磨"],["C","四川某钢铁集团公司钢渣气流粉碎生产线","建材及固废应用案例","钢渣",4000,3000,8.21,"D90","蒸汽","蒸汽动能磨"],["C","中国某知名大学材料学院三合一实验室用气流粉碎分级机","高新材料应用案例","碳纤维",1,3000,19,"D97","实验室","三合一实验机"],["C","北京某大学三合一实验室用气流粉碎分级机","其他材料应用案例","陶瓷粉末",5,154,5.505,"D99","实验室","三合一实验机"],["C","威海某生物科技公司海参饲料粉碎生产线","食品/保健品/化妆品应用案例","海参饲料",100,2500,39.1,"D90","机械磨","机械粉碎(空气分级磨)"],["C","盂县某焦化公司脱硫剂粉碎生产线","环保脱硫应用案例","脱硫剂",500,1000,15,"D90","机械磨","机械粉碎(空气分级磨)"],["C","贵州某矿物工厂重晶石粉碎生产线","非金属矿应用案例","重晶石",1000,15.4,3,"D97","机械磨","振动磨"],["C","山西某建材厂煤矸石粉碎生产线","建材及固废应用案例","煤矸石",2000,47.38461538461539,10,"D97","球磨线+分级","球磨分级线"],["C","江苏某医药集团研究院实验室粉碎设备","医药应用案例","原料药",5,154,10,"D90","实验室","未标注"],["C","江苏某大型颜料公司与埃尔派签订颜料粉碎生产线","颜料/染料应用案例","化工颜料",300,3000,10,"D97","分级","气流分级机/线"],["C","江苏省某知名颜料工厂订购埃尔派颜料粉碎设备","颜料/染料应用案例","颜料",500,1000,5,"D97","机械磨","机械粉碎(空气分级磨)"],["C","吉林某新材料有限公司订购埃尔派金属粉末粉碎设备","粉末冶金应用案例","羟基镍粉",400,20,10.9,"D95","气流磨","圆盘式气流磨"],["C","北京某研究院与埃尔派签订粉煤灰改性生产线订购协议","建材及固废应用案例","粉煤灰",10000,45,10,"D97","改性","高速搅拌改性机"],["C","南京某新材料公司与埃尔派签订PE蜡MQW20粉碎设备合同","高新材料应用案例","PE蜡",100,53.29,7.58,"D99","气流磨","流化床气流磨"],["C","广东某化工公司订购埃尔派改性粉碎设备","非金属矿应用案例","碳酸钙",2600,52.5,8,"D97","机械磨","针盘磨"],["C","河南南阳某碳酸钙公司球磨分级生产线","非金属矿应用案例","碳酸钙",5000,51,5,"D97","球磨线+分级","球磨分级线"],["C","烟台某化工集团树脂粉碎生产线","精细化工应用案例","树脂",500,3000,26.2,"D90","机械磨","机械粉碎(空气分级磨)"],["C","山东某矿业集团新建锡粉生产线","粉末冶金应用案例","锡粉",1000,45,7.54,"D97","分级","气流分级机/线"],["E","3M new material factory: Resin grinding mill production line - ALPA Powder Equipment","chemical","Resin",2500,154,6.5,"D50","机械磨","air-classifying-mill|chemical|dry-grinding|electronic"],["E","A agrochemical company of  Shandong province,quizalofop-p-ethyl grinding production line - ALPA Powder Equipment","chemical","Quizalofop",1000,513.3333333333334,90,"D90","机械磨","air-classifying-mill|chemical|dry-grinding|pesticides"],["E","A biotechnology company in Shandong province, corn starch airflow classification production line - ALPA Powder Equipment","chemical","Corn starch",875,77,97,"D97","分级","air-classifier|chemical|classifying-and-separating|food-health-products|medicine"],["E","A chemical company in Beijing， desulfurizer mechanical grinding production line - ALPA Powder Equipment","chemical","Desulfurizer",3000,1000,90,"D90","机械磨","chemical|dry-grinding|flue-gas-desulphurization|sodium-bicarbonate-air-classifier-mill"],["E","A chemical company in Ningxia province, methionine grinding production line - ALPA Powder Equipment","feed","Methionine",1000,1000,97,"D97","机械磨","feed|chemical|dry-grinding|medicine|pin-mill"],["E","A coking company in Yuxian County, desulfurizer grinding production line - ALPA Powder Equipment","dry-grinding","Desulfurizer",500,1000,90,"D90","机械磨","dry-grinding|flue-gas-desulphurization|sodium-bicarbonate-air-classifier-mill"],["E","A coking plant in Nanyang, Henan,desulfurizer grinding production line - ALPA Powder Equipment","chemical","Desulfurizer",500,1000,90,"D90","机械磨","chemical|dry-grinding|flue-gas-desulphurization|sodium-bicarbonate-air-classifier-mill"],["E","A compound fertilizer company in Saudi Arabia, potassium sulfate grinding production line - ALPA Powder Equipment","dry-grinding","Potassium Sulfate",2000,2000,90,"D90","分级+机械磨","air-classifier|dry-grinding|drying-and-dispersing|fertilizer|ulm-c-turbo-mill"],["E","A famous University in China Air flow: School of materials: three in one jet mill and air classifier - ALPA Powder Equipment","dry-grinding","Carbon fiber",1,3000,97,"D97","实验室","dry-grinding|laboratory|laboratory-equipment"],["E","A food additive factory in Shandong province, xanthan gum production line - ALPA Powder Equipment","dry-grinding","Xanthan gum",500,1000,97,"D97","分级+机械磨","air-classifier|dry-grinding|food-health-products|rtm-turbo-mill"],["E","A grinding mill  production line of  Cassava starch in a feed factory in Guangdong Province - ALPA Powder Equipment","feed","Cassava starch",1000,25000,90,"D90","机械磨","air-classifying-mill|feed|dry-grinding"],["E","A heavy calcium carbonate ball milling and grading + modification production line in a mineral factory in Serbia - ALPA Powder Equipment","dry-grinding","GCC",750,10,97,"D97","分级+球磨线+改性+机械磨","classifying-and-separating|classifying-and-ball-mill-production-line|coating-and-material-bonding|dry-grinding|minerals|rtm-turbo-mill"],["E","A laboratory of PetroChina Research Institute: Three in one jet mill and classifier - ALPA Powder Equipment","chemical","Barium sulfate",5,154,50,"D50","分级+实验室","chemical|classifying-and-separating|dry-grinding|laboratory|laboratory-equipment"],["E","A large coking enterprises in Shanxi, flue gas desulfurization and denitrification equipment - ALPA Powder Equipment","chemical","Sodium bicarbonate",1000,154,90,"D90","机械磨","chemical|dry-grinding|flue-gas-desulphurization|sodium-bicarbonate-air-classifier-mill"],["E","A large pigment company in Jiangsu province signed a pigment grinding production line with ALPA - ALPA Powder Equipment","dry-grinding","Chemical pigment",300,3000,97,"D97","分级+机械磨","air-classifier|air-classifying-mill|dry-grinding|pigments-dyes-printing"],["E","A Mining Group in Shandong Province: New Tin Powder Production Line - ALPA Powder Equipment","electronic","Tin Powder",1000,45,97,"D97","分级","air-classifier|classifying-and-separating|electronic|minerals"],["E","A new material company in Nanjing: PE wax MQW20 jet mill equipment - ALPA Powder Equipment","dry-grinding","PE wax",100,3000,99,"D99","气流磨","dry-grinding|fluidized-bed-jet-mill|pigments-dyes-printing"],["E","A new material factory in Jiangsu province, zinc oxide powder classification production line - ALPA Powder Equipment","chemical","Zinc oxide powder",300,47.38461538461539,10,"D97","分级","air-classifier|chemical|classifying-and-separating|electronic"],["E","A New Material Company in Jilin: Metal powder grinding equipment - ALPA Powder Equipment","chemical","Hydroxy nickel powder",400,20,95,"D95","气流磨","chemical|dry-grinding|electronic|spiral-jet-mill"],["E","A pigment factory in Shandong province, organic pigment ultrafine grinding production line - ALPA Powder Equipment","dry-grinding","organic pigment",300,4000,90,"D90","机械磨","air-classifying-mill|dry-grinding|pigments-dyes-printing"],["E","A research institute in Beijing signed an order agreement with ALPA for fly ash modification production line - ALPA Powder Equipment","architecture","Fly ash",10000,45,97,"D97","分级+改性","air-classifier|architecture|coating-and-material-bonding"],["E","A university of Shanxi province: Silver pulp ultra-fine powder dispersion production line - ALPA Powder Equipment","dry-grinding","Silver pulp",20,1000,50,"D50","实验室","dry-grinding|laboratory|laboratory-equipment"],["E","A well-known pigment factory in Jiangsu Province ordered ALPA pigment grinding mill - ALPA Powder Equipment","dry-grinding","pigment",500,1000,97,"D97","机械磨","air-classifying-mill|dry-grinding|pigments-dyes-printing"],["E","Air Classifying production line of carbon microspheres in a chemical plant in Hebei - ALPA Powder Equipment","battery-materials","Carbon microspheres",500,77,25,"D97","分级","air-classifier|classifying-and-separating|battery-materials"],["E","API ultrafine pulverization production line for a pharmaceutical company in Guangdong - ALPA Powder Equipment","dry-grinding","API",7.5,1000,90,"D90","气流磨","dry-grinding|medicine|spiral-jet-mill"],["E","Ball mill and Air classifier line of zirconium sand in a mineral factory in Vietnam - ALPA Powder Equipment","architecture","Zirconium sand",1250,3000,98,"D98","分级+球磨线","architecture|classifying-and-separating|classifying-and-ball-mill-production-line|dry-grinding|minerals"],["E","Ball mill production line for coal gangue of a building material factory in Shanxi Province - ALPA Powder Equipment","architecture","Gangue",2000,47.38461538461539,97,"D97","分级+球磨线","air-classifier|architecture|classifying-and-ball-mill-production-line|dry-grinding"],["E","Barite jet mill production line of a powder industry company in Guizhou - ALPA Powder Equipment","dry-grinding","Barite",500,47.38461538461539,97,"D97","分级+气流磨","classifying-and-separating|dry-grinding|fluidized-bed-jet-mill|minerals|pigments-dyes-printing"],["E","Barite milling production line of a mineral factory in Guizhou - ALPA Powder Equipment","minerals","Barite",1000,15.4,97,"D97","改性+机械磨","coating-and-material-bonding|minerals|pigments-dyes-printing|vibration-mill"],["E","BASF laboratory in Shanghai: Three in one jet mill and air classifier - ALPA Powder Equipment","chemical","NCM",10,154,90,"D90","实验室","chemical|dry-grinding|laboratory|laboratory-equipment"],["E","Calcium carbonate modified production line of a paper mill in Shandong - ALPA Powder Equipment","chemical","Calcium carbonate",1000,154,7.5,"D97","改性+机械磨","chemical|coating-and-material-bonding|minerals|rtm-turbo-mill"],["E","China Academy of Sciences: Three in one Jet mill and air classifier - ALPA Powder Equipment","chemical","Activated carbon",2,1000,50,"D50","分级+实验室","chemical|classifying-and-separating|dry-grinding|laboratory-equipment"],["E","Glucose ultrafine crushing production line of a group in Liaoning - ALPA Powder Equipment","dry-grinding","Glucose",750,1000,90,"D90","机械磨","dry-grinding|food-health-products|pin-mill"],["E","Heavy calcium carbonate modified production line in a mineral factory in Thailand - ALPA Powder Equipment","minerals","GCC",3000,10,97,"D97","改性+机械磨","coating-and-material-bonding|minerals|rtm-turbo-mill"],["E","Henan Nanyang a calcium carbonate company ball mill and air classifier production line - ALPA Powder Equipment","chemical","Calcium carbonate",5000,5000,7.5,"D97","分级+球磨线","chemical|classifying-and-separating|classifying-and-ball-mill-production-line|dry-grinding"],["E","Ibuprofen ultrafine pulverization production line of a pharmaceutical company in Shandong - ALPA Powder Equipment","dry-grinding","Ibuprofen",625,1000,95,"D95","气流磨","dry-grinding|medicine|spiral-jet-mill"],["E","Jet mill production line of API for a pharmaceutical company in Jilin Province - ALPA Powder Equipment","dry-grinding","API",15,1000,11.5,"D90","气流磨","dry-grinding|medicine|spiral-jet-mill"],["E","Jiangsu a new material company electronic grade ultra pure quartz classification production line - ALPA Powder Equipment","electronic","Ultra pure quartz",40,15,100,"D100","分级","air-classifier|classifying-and-separating|electronic"],["E","Jiangxi a cement plant calcium carbonate grading production line - ALPA Powder Equipment","architecture","Caclium carbonate",1500,19.25,97,"D97","分级","air-classifier|architecture|classifying-and-separating|dry-grinding"],["E","Laboratory grinding equipment of a Jiangsu Pharmaceutical Group Research Institute - ALPA Powder Equipment","dry-grinding","API",5,154,90,"D90","实验室","dry-grinding|laboratory|laboratory-equipment|medicine"],["E","Lithium cobalt oxide/ternary material production line of a new material technology company in Tianjin City - ALPA Powder Equipment","dry-grinding","Lithium Cobaltate/Ternary Material",500,2000,11,"D50","机械磨","air-classifying-mill|dry-grinding|battery-materials"],["E","Lithium cobalt oxide/ternary material ultrafine grinding production line of an energy materials company in Xiamen - ALPA Powder Equipment","dry-grinding","Lithium Cobaltate/Ternary Material",500,2000,11,"D50","机械磨","air-classifying-mill|dry-grinding|battery-materials"],["E","Lithium iron phosphate ultrafine grinding production line of a energy material company in Chongqing City - ALPA Powder Equipment","dry-grinding","Lithium Iron Phosphate",2000,1000,50,"D50","蒸汽","dry-grinding|battery-materials|steam-jet-mill"],["E","Lithium manganate ultrafine grinding production line of a high-tech new material company in Qingdao - ALPA Powder Equipment","dry-grinding","Lithium manganese oxide",300,2000,50,"D50","气流磨","dry-grinding|fluidized-bed-jet-mill|battery-materials"],["E","Losartan potassium air jet mill production line of a pharmaceutical company in Zhejiang - ALPA Powder Equipment","dry-grinding","Losartan potassium",90,1000,90,"D90","气流磨","dry-grinding|fluidized-bed-jet-mill|medicine"],["E","Manganese dioxide air classification production line of a manganese industry factory in Guizhou - ALPA Powder Equipment","battery-materials","Manganese dioxide",400,51.333333333333336,97,"D97","分级","air-classifier|classifying-and-separating|battery-materials"],["E","Matcha superfine grinding production line of a tea company in Shaoxing - ALPA Powder Equipment","dry-grinding","Matcha",300,1000,90,"D90","机械磨","dry-grinding|food-health-products|vibration-mill"],["E","Pectin crushing production line of a fruit industry company in Dangshan, Anhui - ALPA Powder Equipment","cosmetics","Pectin",300,4000,90,"D90","机械磨","cosmetics|dry-grinding|food-health-products|medicine|pin-mill"],["E","Pectin grinding production line of a group company in Shandong - ALPA Powder Equipment","cosmetics","Pectin",300,4000,90,"D90","机械磨","air-classifying-mill|cosmetics|dry-grinding|food-health-products|medicine"],["E","Production line of lithium iron phosphate and single crystal ternary jet mill for an electric vehicle company in Shenzhen - ALPA Powder Equipment","dry-grinding","Lithium iron phosphate, single crystal ternary material",500,1000,50,"D50","气流磨","dry-grinding|fluidized-bed-jet-mill|battery-materials"],["E","Production line of pea protein isolate mechanical impact mill of a company in Beijing - ALPA Powder Equipment","dry-grinding","Pea Protein Isolate",2000,2500,90,"D90","分级+机械磨","air-classifier|air-classifying-mill|dry-grinding|food-health-products"],["E","Quartz grinding and grading production line owned by China Building Materials Group - ALPA Powder Equipment","architecture","Quartz",625,3000,100,"D100","分级+球磨线","air-classifier|architecture|classifying-and-separating|classifying-and-ball-mill-production-line|dry-grinding"],["E","Quartz powder ball mill and air classifier production line in a mineral factory in Shandong - ALPA Powder Equipment","architecture","Quartz",5000,3000,97,"D97","分级+球磨线","architecture|classifying-and-separating|classifying-and-ball-mill-production-line|dry-grinding|minerals"],["E","Sea cucumber feed grinding production line of a biotechnology company in WeihaiSea cucumber feed grinding production line of a biotechnology company in Weihai - ALPA Powder Equipment","feed","Sea cucumber feed",100,2500,90,"D90","机械磨","air-classifying-mill|feed|dry-grinding"],["E","Silica soil drying and dispersing modification production line of a mineral products company in Fujian - ALPA Powder Equipment","chemical","Silica sand",1000,47.38461538461539,97,"D97","改性+机械磨","chemical|coating-and-material-bonding|drying-and-dispersing|minerals|ulm-c-turbo-mill"],["E","Single crystal ternary material ultrafine grinding production line of a technology company in Chengdu - ALPA Powder Equipment","dry-grinding","Single crystal ternary materials",300,1000,50,"D50","气流磨","dry-grinding|battery-materials|spiral-jet-mill"],["E","Sugar grinding production line of a food company in Guangzhou - ALPA Powder Equipment","dry-grinding","Sugar",2000,2500,90,"D90","机械磨","dry-grinding|food-health-products|hammer-mill"],["E","Superfine cement grinding production line of a building material factory in Zhejiang Province - ALPA Powder Equipment","architecture","Superfine cement",600,47.38461538461539,90,"D90","机械磨","architecture|dry-grinding|vibration-mill"],["E","Superfine cement superfine grinding production line of a building material factory in Greece - ALPA Powder Equipment","architecture","Superfine cement",500,47.38461538461539,97,"D97","机械磨","architecture|dry-grinding|vibration-mill"],["E","Ternary material grinding production line of a recycling technology company in Guangdong - ALPA Powder Equipment","dry-grinding","Ternary Materials",500,2000,50,"D50","机械磨+气流磨","air-classifying-mill|dry-grinding|fluidized-bed-jet-mill|battery-materials"],["E","The air jet mill production line of a Korean rice flour - ALPA Powder Equipment","dry-grinding","Rice Flour",450,3000,90,"D90","气流磨","dry-grinding|fluidized-bed-jet-mill|food-health-products"],["E","Three-in-one Lab scale grinding equipment for a battery material company in Shenzhen - ALPA Powder Equipment","dry-grinding","Lithium Iron Phosphate",10,20,50,"D50","实验室","dry-grinding|laboratory|laboratory-equipment|battery-materials"],["E","Weifang a new material company calcium carbonate dispersion modification production line - ALPA Powder Equipment","chemical","Calcium carbonate",1000,154,97,"D97","改性","chemical|coating-and-material-bonding|minerals|three-roller-mill"],["E","Yangyuan County a clay company bentonite air classification production line - ALPA Powder Equipment","minerals","Bentonite",5000,47.38461538461539,27.5,"D97","分级","air-classifier|classifying-and-separating|minerals"]];
+const DATA_CASES=[["C","深圳某电动汽车公司磷酸铁锂和单晶三元气流粉碎机生产线","电池材料","磷酸铁锂、单晶三元材料",500,1000,3.44,"D50","气流磨","气流粉碎机(未细分)"],["C","北京某公司豌豆分离蛋白机械粉碎机生产线","食品/保健品/化妆品","豌豆分离蛋白",2000,2500,19.7,"D90","机械磨","机械粉碎(空气分级磨)"],["C","3M新材料工厂树脂机械粉碎机生产线","高新材料","树脂",2500,154,5,"D50","机械磨","机械粉碎(空气分级磨)"],["C","佛山某调味品生产企业订购炒麦机械粉碎机生产线","食品/保健品/化妆品","炒麦",500,4000,35.3,"D90","机械磨","机械粉碎(空气分级磨)"],["C","宁德某新材料工厂单晶三元材料气流粉碎机生产线","电池材料","单晶三元材料",500,1000,3.5,"D50","气流磨","气流粉碎机(未细分)"],["C","上海巴斯夫实验室使用的三合一气流粉碎机","高新材料","三元材料",10,154,3.66,"D90","实验室","三合一实验机"],["C","中石油隶属研究院实验室使用的三合一气流粉碎分级机","高新材料","硫酸钡",5,154,1.65,"D50","实验室","三合一实验机"],["C","中国科学院三合一气流粉碎机","高新材料","活性炭",2,1000,3.4,"D50","实验室","三合一实验机"],["C","中建材集团所属公司石英研磨分级生产线","非金属矿","石英粉",625,55,10,"D100","球磨线+分级","球磨分级线"],["C","云南某集团公司研究院催化剂粉碎生产线","粉末冶金","催化剂",200,154,8.12,"D97","气流磨","流化床气流磨"],["C","山东某生物科技公司玉米淀粉气流分级生产线","精细化工","玉米淀粉",875,77,51,"D97","分级","气流分级机/线"],["C","北京某化工企业 脱硫剂 机械粉碎机生产线","环保脱硫","脱硫剂",3000,1000,15,"D90","机械磨","机械粉碎(空气分级磨)"],["C","山西地区大型焦化企业烟气脱硫脱硝设备","环保脱硫","碳酸氢钠",1000,154,5.84,"D90","机械磨+气流磨","未标注"],["C","潍坊某新材料公司碳酸钙打散改性生产线","非金属矿","碳酸钙",1000,154,41.2,"D97","改性","三辊磨"],["C","泰国某矿物工厂重质碳酸钙改性生产线","非金属矿","重质碳酸钙",3000,10,10,"D97","改性+机械磨","涡流磨(改性/打散)"],["C","塞尔维亚某矿物工厂重质碳酸钙球磨分级+改性生产线","非金属矿","重质碳酸钙",750,10,10,"D97","改性+机械磨+球磨线","涡流磨(改性/打散)"],["C","福建某矿物制品公司硅土干燥打散改性生产线","非金属矿","硅土",1000,47.38461538461539,8.1,"D97","机械磨","转子磨/蜂巢磨"],["C","阳原县某粘土公司膨润土气流分级生产线","非金属矿","膨润土",5000,47.38461538461539,10,"D97","分级","气流分级机/线"],["C","山西某造纸工厂煤矸石粉气流分级生产线","非金属矿","煤矸石粉",6000,5000,6.55,"D97","分级","气流分级机/线"],["C","北京某科技公司金属粉末气流分级生产线","粉末冶金","不锈钢粉末",500,77,9.38,"D90","分级","气流分级机/线"],["C","深圳某电池材料公司三合一粉碎实验设备","电池材料","磷酸铁锂",10,20,0.7,"D50","实验室","三合一实验机"],["C","天津某新材料科技公司钴酸锂/三元材料生产线","电池材料","钴酸锂/三元材料",500,2000,10,"D50","机械磨","机械粉碎(空气分级磨)"],["C","南通某新材料公司三元材料超微粉碎生产线","电池材料","三元材料",500,2000,10,"D50","机械磨","机械粉碎(空气分级磨)"],["C","合肥某电池材料公司三元材料机械、气流粉碎生产线","电池材料","三元材料",500,2000,10,"D50","机械磨+气流磨","机械粉碎(空气分级磨)"],["C","广东某循环科技公司三元材料粉碎生产线","电池材料","三元材料",500,2000,4.36,"D50","机械磨","机械粉碎(空气分级磨)"],["C","广州某食品公司白砂糖粉碎生产线","食品/保健品/化妆品","白砂糖",2000,2500,98.9,"D90","机械磨+气流磨","未标注"],["C","山东某阿胶公司冻干驴奶粉粉碎生产线","食品/保健品/化妆品","冻干驴奶粉",100,1000,115,"D90","机械磨","锤式磨"],["C","辽宁某集团葡萄糖超微粉碎生产线","食品/保健品/化妆品","葡萄糖",750,1000,26.4,"D90","气流磨+机械磨","未标注"],["C","山西某电力公司粉煤灰粉碎加工生产线","建材及固废","粉煤灰",5000,1000,9,"D97","蒸汽","蒸汽动能磨"],["C","福建某化工公司沉淀法白炭黑超微气流粉碎生产线","精细化工","沉淀法白炭黑",1000,154,3,"D50","气流磨","流化床气流磨"],["C","青岛某高科新材料公司锰酸锂超微粉碎生产线","电池材料","锰酸锂",300,2000,10,"D50","气流磨","流化床气流磨"],["C","重庆某新能源材料公司磷酸铁锂超微粉碎生产线","电池材料","磷酸铁锂",2000,1000,1,"D50","蒸汽","蒸汽动能磨"],["C","成都某科技公司单晶三元材料超微粉碎生产线","电池材料","单晶三元材料",300,1000,3.75,"D50","气流磨","圆盘式气流磨"],["C","山东省某药业公司扑热息痛生产线","医药","扑热息痛",300,1000,32.2,"D90","气流磨","未标注"],["C","广东某药业公司原料药超微粉碎生产线","医药","原料药",7.5,1000,7.6,"D90","气流磨+机械磨","未标注"],["C","陕西某大学银浆超微打散粉碎生产线","粉末冶金","银浆",20,1000,1.74,"D50","机械磨","未标注"],["C","山东某制药公司布洛芬超微粉碎生产线","医药","布洛芬",625,1000,10,"D95","气流磨+机械磨","未标注"],["C","吉林省某制药公司原料药气流粉碎生产线","医药","原料药",15,1000,8,"D90","气流磨","气流粉碎机(未细分)"],["C","广东某矿业矿物工厂石英粉气流分级生产线","非金属矿","石英粉",6250,68.3,39.6,"D97","分级","气流分级机/线"],["C","越南某矿物工厂锆英砂球磨分级生产线","非金属矿","锆英砂",1250,63.5645,29.129,"D98","球磨线+分级","球磨分级线"],["C","贵州某锰业工厂二氧化锰气流分级生产线","电池材料","二氧化锰",400,51.333333333333336,38.8,"D97","分级","气流分级机/线"],["C","山东某矿物工厂石英粉球磨分级生产线","非金属矿","石英粉",5000,67.35,37.7,"D97","球磨线+分级","球磨分级线"],["C","河北某化工厂碳微球气流分级生产线","电池材料","碳微球",500,77,5,"D97","分级","气流分级机/线"],["C","山东某造纸厂碳酸钙改性生产线","非金属矿","碳酸钙",1000,154,5,"D97","改性+机械磨","涡流磨(改性/打散)"],["C","山东某食品添加剂厂黄原胶生产线","精细化工","黄原胶",500,1000,39,"D97","改性+机械磨","涡流磨(改性/打散)"],["C","越南某矿物工厂重质碳酸钙球磨分级生产线","非金属矿","重质碳酸钙",3000,10,10,"D97","球磨线+分级","球磨分级线"],["C","广东某化工厂轻质碳酸钙干燥打散生产线","非金属矿","轻质碳酸钙",2000,154,9.11,"D97","机械磨","转子磨/蜂巢磨"],["C","沙特某复合肥公司硫酸钾粉碎生产线","精细化工","硫酸钾",2000,2000,15.4,"D90","机械磨","转子磨/蜂巢磨"],["C","浏阳某烟草公司烟梗粉碎生产线","其他材料","烟梗",800,50000,74.7,"D97","机械磨","转子磨/蜂巢磨"],["C","江西某水泥厂碳酸钙分级生产线","非金属矿","碳酸钙",1500,19.25,4.45,"D97","分级","气流分级机/线"],["C","营口市某集团公司氧化镁改性生产线","精细化工","氧化镁",1250,10,10,"D97","改性+机械磨","涡流磨(改性/打散)"],["C","江苏某新材料工厂氧化锌粉分级生产线","精细化工","氧化锌粉",300,47.38461538461539,5,"D97","分级","气流分级机/线"],["C","上海某化工公司聚乙烯醇超细粉碎生产线","精细化工","聚乙烯醇",500,770,200,"D97","机械磨","机械粉碎(空气分级磨)"],["C","河南南阳某焦化厂脱硫剂粉碎生产线","环保脱硫","脱硫剂",500,1000,14.3,"D90","机械磨","机械粉碎(空气分级磨)"],["C","广东某饲料厂木薯淀粉粉碎生产线","其他材料","木薯淀粉",1000,25000,46.3,"D90","机械磨","机械粉碎(空气分级磨)"],["C","山东某集团公司果胶粉碎生产线","食品/保健品/化妆品","果胶",300,4000,33.4,"D90","机械磨","机械粉碎(空气分级磨)"],["C","安徽砀山某果业公司果胶粉碎生产线","食品/保健品/化妆品","果胶",300,4000,39.3,"D90","机械磨","针盘磨"],["C","山东某颜料厂有机颜料超微粉碎生产线","颜料/染料","有机颜料",300,4000,15.1,"D90","机械磨","机械粉碎(空气分级磨)"],["C","山东某集团农化公司精喹禾灵粉碎生产线","精细化工","精喹禾灵",1000,513.3333333333334,45.9,"D90","机械磨","机械粉碎(空气分级磨)"],["C","宁夏某化工公司蛋氨酸粉碎生产线","精细化工","蛋氨酸",1000,1000,33.8,"D97","机械磨","针盘磨"],["C","厦门某能源材料公司钴酸锂/三元材料超微粉碎生产线","电池材料","钴酸锂/三元材料",500,2000,10,"D50","机械磨","机械粉碎(空气分级磨)"],["C","湖南某制药公司原料药超微粉碎生产线","医药","原料药",150,1000,39.9,"D90","机械磨","锤式磨"],["C","泗洪县某洗涤用品厂皂粉超微粉碎生产线","精细化工","皂粉",500,5500,69.8,"D90","机械磨","锤式磨"],["C","青岛某化工厂油漆渣超微粉碎生产线","建材及固废","油漆渣",1000,15000,49.5,"D90","机械磨","锤式磨"],["C","山东某食品厂白砂糖粉碎生产线","食品/保健品/化妆品","白砂糖",1000,2500,45.7,"D90","机械磨","针盘磨"],["C","台湾某化工厂碳酸钙超微粉碎生产线","精细化工","碳酸钙",2000,1000,4,"D90","机械磨","针盘磨"],["C","湖南某新材料产业园单晶三元材料超微粉碎生产线","电池材料","单晶三元材料",300,1000,3.5,"D50","气流磨","圆盘式气流磨"],["C","佛山市某实业公司单晶三元材料粉碎生产线","电池材料","单晶三元材料",300,1000,3.5,"D50","气流磨","圆盘式气流磨"],["C","山东某医药集团公司原料药气流粉碎生产线","医药","原料药",15,1000,10,"D90","气流磨","气流粉碎机(未细分)"],["C","河北某药业公司青霉素粉碎生产线","医药","青霉素",300,1000,15,"D90","气流磨","圆盘式气流磨"],["C","浙江某药业公司原料药气流粉碎生产线","医药","原料药",7.5,1000,3.62,"D90","气流磨","圆盘式气流磨"],["C","浙江某药业公司氯沙坦钾气流粉碎生产线","医药","氯沙坦钾",90,1000,7.45,"D90","气流磨","气流粉碎机(未细分)"],["C","韩国某株式会社米粉气流粉碎生产线","食品/保健品/化妆品","米粉",450,3000,27.5,"D90","气流磨","流化床气流磨"],["C","江苏某新材料公司电子级超纯石英分级生产线","非金属矿","电子级超纯石英",40,15,8,"D100","分级","气流分级机/线"],["C","江西某锂业公司碳酸锂粉碎生产线","电池材料","碳酸锂",1250,192.5,5,"D50","气流磨","流化床气流磨"],["C","贵州某粉体工业公司重晶石气流粉碎生产线","非金属矿","重晶石",500,47.38461538461539,2.5,"D97","气流磨","流化床气流磨"],["C","江阴某化工集团公司磷酸氢钙气流粉碎生产线","精细化工","磷酸氢钙",3000,154,36.5,"D99","气流磨","流化床气流磨"],["C","希腊某建材厂超细水泥超微粉碎生产线","建材及固废","超细水泥",500,47.38461538461539,11,"D97","机械磨","振动磨"],["C","浙江某建材厂超细水泥粉碎生产线","建材及固废","超细水泥",600,47.38461538461539,7.5,"D90","机械磨","振动磨"],["C","绍兴某茶业公司抹茶超微粉碎生产线","食品/保健品/化妆品","抹茶",300,1000,10,"D90","机械磨","振动磨"],["C","辽宁某化矿集团公司滑石粉超微粉碎生产线","非金属矿","滑石粉",400,154,2,"D50","蒸汽","蒸汽动能磨"],["C","山西某大型煤矿集团粉煤灰蒸汽粉碎生产线","建材及固废","粉煤灰",10000,1000,10,"D97","蒸汽","蒸汽动能磨"],["C","四川某钢铁集团公司钢渣气流粉碎生产线","建材及固废","钢渣",4000,3000,8.21,"D90","蒸汽","蒸汽动能磨"],["C","中国某知名大学材料学院三合一实验室用气流粉碎分级机","高新材料","碳纤维",1,3000,19,"D97","实验室","三合一实验机"],["C","北京某大学三合一实验室用气流粉碎分级机","其他材料","陶瓷粉末",5,154,5.505,"D99","实验室","三合一实验机"],["C","威海某生物科技公司海参饲料粉碎生产线","食品/保健品/化妆品","海参饲料",100,2500,39.1,"D90","机械磨","机械粉碎(空气分级磨)"],["C","盂县某焦化公司脱硫剂粉碎生产线","环保脱硫","脱硫剂",500,1000,15,"D90","机械磨","机械粉碎(空气分级磨)"],["C","贵州某矿物工厂重晶石粉碎生产线","非金属矿","重晶石",1000,15.4,3,"D97","机械磨","振动磨"],["C","山西某建材厂煤矸石粉碎生产线","建材及固废","煤矸石",2000,47.38461538461539,10,"D97","球磨线+分级","球磨分级线"],["C","江苏某医药集团研究院实验室粉碎设备","医药","原料药",5,154,10,"D90","实验室","未标注"],["C","江苏某大型颜料公司与埃尔派签订颜料粉碎生产线","颜料/染料","化工颜料",300,3000,10,"D97","分级","气流分级机/线"],["C","江苏省某知名颜料工厂订购埃尔派颜料粉碎设备","颜料/染料","颜料",500,1000,5,"D97","机械磨","机械粉碎(空气分级磨)"],["C","吉林某新材料有限公司订购埃尔派金属粉末粉碎设备","粉末冶金","羟基镍粉",400,20,10.9,"D95","气流磨","圆盘式气流磨"],["C","北京某研究院与埃尔派签订粉煤灰改性生产线订购协议","建材及固废","粉煤灰",10000,45,10,"D97","改性","高速搅拌改性机"],["C","南京某新材料公司与埃尔派签订PE蜡MQW20粉碎设备合同","高新材料","PE蜡",100,53.29,7.58,"D99","气流磨","流化床气流磨"],["C","广东某化工公司订购埃尔派改性粉碎设备","非金属矿","碳酸钙",2600,52.5,8,"D97","机械磨","针盘磨"],["C","河南南阳某碳酸钙公司球磨分级生产线","非金属矿","碳酸钙",5000,51,5,"D97","球磨线+分级","球磨分级线"],["C","烟台某化工集团树脂粉碎生产线","精细化工","树脂",500,3000,26.2,"D90","机械磨","机械粉碎(空气分级磨)"],["C","山东某矿业集团新建锡粉生产线","粉末冶金","锡粉",1000,45,7.54,"D97","分级","气流分级机/线"],["E","3M new material factory: Resin grinding mill production line - ALPA Powder Equipment","chemical","Resin",2500,154,6.5,"D50","机械磨","air-classifying-mill|chemical|dry-grinding|electronic"],["E","A agrochemical company of  Shandong province,quizalofop-p-ethyl grinding production line - ALPA Powder Equipment","chemical","Quizalofop",1000,513.3333333333334,90,"D90","机械磨","air-classifying-mill|chemical|dry-grinding|pesticides"],["E","A biotechnology company in Shandong province, corn starch airflow classification production line - ALPA Powder Equipment","chemical","Corn starch",875,77,97,"D97","分级","air-classifier|chemical|classifying-and-separating|food-health-products|medicine"],["E","A chemical company in Beijing， desulfurizer mechanical grinding production line - ALPA Powder Equipment","chemical","Desulfurizer",3000,1000,90,"D90","机械磨","chemical|dry-grinding|flue-gas-desulphurization|sodium-bicarbonate-air-classifier-mill"],["E","A chemical company in Ningxia province, methionine grinding production line - ALPA Powder Equipment","feed","Methionine",1000,1000,97,"D97","机械磨","feed|chemical|dry-grinding|medicine|pin-mill"],["E","A coking company in Yuxian County, desulfurizer grinding production line - ALPA Powder Equipment","dry-grinding","Desulfurizer",500,1000,90,"D90","机械磨","dry-grinding|flue-gas-desulphurization|sodium-bicarbonate-air-classifier-mill"],["E","A coking plant in Nanyang, Henan,desulfurizer grinding production line - ALPA Powder Equipment","chemical","Desulfurizer",500,1000,90,"D90","机械磨","chemical|dry-grinding|flue-gas-desulphurization|sodium-bicarbonate-air-classifier-mill"],["E","A compound fertilizer company in Saudi Arabia, potassium sulfate grinding production line - ALPA Powder Equipment","dry-grinding","Potassium Sulfate",2000,2000,90,"D90","分级+机械磨","air-classifier|dry-grinding|drying-and-dispersing|fertilizer|ulm-c-turbo-mill"],["E","A famous University in China Air flow: School of materials: three in one jet mill and air classifier - ALPA Powder Equipment","dry-grinding","Carbon fiber",1,3000,97,"D97","实验室","dry-grinding|laboratory|laboratory-equipment"],["E","A food additive factory in Shandong province, xanthan gum production line - ALPA Powder Equipment","dry-grinding","Xanthan gum",500,1000,97,"D97","分级+机械磨","air-classifier|dry-grinding|food-health-products|rtm-turbo-mill"],["E","A grinding mill  production line of  Cassava starch in a feed factory in Guangdong Province - ALPA Powder Equipment","feed","Cassava starch",1000,25000,90,"D90","机械磨","air-classifying-mill|feed|dry-grinding"],["E","A heavy calcium carbonate ball milling and grading + modification production line in a mineral factory in Serbia - ALPA Powder Equipment","dry-grinding","GCC",750,10,97,"D97","分级+球磨线+改性+机械磨","classifying-and-separating|classifying-and-ball-mill-production-line|coating-and-material-bonding|dry-grinding|minerals|rtm-turbo-mill"],["E","A laboratory of PetroChina Research Institute: Three in one jet mill and classifier - ALPA Powder Equipment","chemical","Barium sulfate",5,154,50,"D50","分级+实验室","chemical|classifying-and-separating|dry-grinding|laboratory|laboratory-equipment"],["E","A large coking enterprises in Shanxi, flue gas desulfurization and denitrification equipment - ALPA Powder Equipment","chemical","Sodium bicarbonate",1000,154,90,"D90","机械磨","chemical|dry-grinding|flue-gas-desulphurization|sodium-bicarbonate-air-classifier-mill"],["E","A large pigment company in Jiangsu province signed a pigment grinding production line with ALPA - ALPA Powder Equipment","dry-grinding","Chemical pigment",300,3000,97,"D97","分级+机械磨","air-classifier|air-classifying-mill|dry-grinding|pigments-dyes-printing"],["E","A Mining Group in Shandong Province: New Tin Powder Production Line - ALPA Powder Equipment","electronic","Tin Powder",1000,45,97,"D97","分级","air-classifier|classifying-and-separating|electronic|minerals"],["E","A new material company in Nanjing: PE wax MQW20 jet mill equipment - ALPA Powder Equipment","dry-grinding","PE wax",100,3000,99,"D99","气流磨","dry-grinding|fluidized-bed-jet-mill|pigments-dyes-printing"],["E","A new material factory in Jiangsu province, zinc oxide powder classification production line - ALPA Powder Equipment","chemical","Zinc oxide powder",300,47.38461538461539,10,"D97","分级","air-classifier|chemical|classifying-and-separating|electronic"],["E","A New Material Company in Jilin: Metal powder grinding equipment - ALPA Powder Equipment","chemical","Hydroxy nickel powder",400,20,95,"D95","气流磨","chemical|dry-grinding|electronic|spiral-jet-mill"],["E","A pigment factory in Shandong province, organic pigment ultrafine grinding production line - ALPA Powder Equipment","dry-grinding","organic pigment",300,4000,90,"D90","机械磨","air-classifying-mill|dry-grinding|pigments-dyes-printing"],["E","A research institute in Beijing signed an order agreement with ALPA for fly ash modification production line - ALPA Powder Equipment","architecture","Fly ash",10000,45,97,"D97","分级+改性","air-classifier|architecture|coating-and-material-bonding"],["E","A university of Shanxi province: Silver pulp ultra-fine powder dispersion production line - ALPA Powder Equipment","dry-grinding","Silver pulp",20,1000,50,"D50","实验室","dry-grinding|laboratory|laboratory-equipment"],["E","A well-known pigment factory in Jiangsu Province ordered ALPA pigment grinding mill - ALPA Powder Equipment","dry-grinding","pigment",500,1000,97,"D97","机械磨","air-classifying-mill|dry-grinding|pigments-dyes-printing"],["E","Air Classifying production line of carbon microspheres in a chemical plant in Hebei - ALPA Powder Equipment","battery-materials","Carbon microspheres",500,77,25,"D97","分级","air-classifier|classifying-and-separating|battery-materials"],["E","API ultrafine pulverization production line for a pharmaceutical company in Guangdong - ALPA Powder Equipment","dry-grinding","API",7.5,1000,90,"D90","气流磨","dry-grinding|medicine|spiral-jet-mill"],["E","Ball mill and Air classifier line of zirconium sand in a mineral factory in Vietnam - ALPA Powder Equipment","architecture","Zirconium sand",1250,3000,98,"D98","分级+球磨线","architecture|classifying-and-separating|classifying-and-ball-mill-production-line|dry-grinding|minerals"],["E","Ball mill production line for coal gangue of a building material factory in Shanxi Province - ALPA Powder Equipment","architecture","Gangue",2000,47.38461538461539,97,"D97","分级+球磨线","air-classifier|architecture|classifying-and-ball-mill-production-line|dry-grinding"],["E","Barite jet mill production line of a powder industry company in Guizhou - ALPA Powder Equipment","dry-grinding","Barite",500,47.38461538461539,97,"D97","分级+气流磨","classifying-and-separating|dry-grinding|fluidized-bed-jet-mill|minerals|pigments-dyes-printing"],["E","Barite milling production line of a mineral factory in Guizhou - ALPA Powder Equipment","minerals","Barite",1000,15.4,97,"D97","改性+机械磨","coating-and-material-bonding|minerals|pigments-dyes-printing|vibration-mill"],["E","BASF laboratory in Shanghai: Three in one jet mill and air classifier - ALPA Powder Equipment","chemical","NCM",10,154,90,"D90","实验室","chemical|dry-grinding|laboratory|laboratory-equipment"],["E","Calcium carbonate modified production line of a paper mill in Shandong - ALPA Powder Equipment","chemical","Calcium carbonate",1000,154,7.5,"D97","改性+机械磨","chemical|coating-and-material-bonding|minerals|rtm-turbo-mill"],["E","China Academy of Sciences: Three in one Jet mill and air classifier - ALPA Powder Equipment","chemical","Activated carbon",2,1000,50,"D50","分级+实验室","chemical|classifying-and-separating|dry-grinding|laboratory-equipment"],["E","Glucose ultrafine crushing production line of a group in Liaoning - ALPA Powder Equipment","dry-grinding","Glucose",750,1000,90,"D90","机械磨","dry-grinding|food-health-products|pin-mill"],["E","Heavy calcium carbonate modified production line in a mineral factory in Thailand - ALPA Powder Equipment","minerals","GCC",3000,10,97,"D97","改性+机械磨","coating-and-material-bonding|minerals|rtm-turbo-mill"],["E","Henan Nanyang a calcium carbonate company ball mill and air classifier production line - ALPA Powder Equipment","chemical","Calcium carbonate",5000,5000,7.5,"D97","分级+球磨线","chemical|classifying-and-separating|classifying-and-ball-mill-production-line|dry-grinding"],["E","Ibuprofen ultrafine pulverization production line of a pharmaceutical company in Shandong - ALPA Powder Equipment","dry-grinding","Ibuprofen",625,1000,95,"D95","气流磨","dry-grinding|medicine|spiral-jet-mill"],["E","Jet mill production line of API for a pharmaceutical company in Jilin Province - ALPA Powder Equipment","dry-grinding","API",15,1000,11.5,"D90","气流磨","dry-grinding|medicine|spiral-jet-mill"],["E","Jiangsu a new material company electronic grade ultra pure quartz classification production line - ALPA Powder Equipment","electronic","Ultra pure quartz",40,15,100,"D100","分级","air-classifier|classifying-and-separating|electronic"],["E","Jiangxi a cement plant calcium carbonate grading production line - ALPA Powder Equipment","architecture","Caclium carbonate",1500,19.25,97,"D97","分级","air-classifier|architecture|classifying-and-separating|dry-grinding"],["E","Laboratory grinding equipment of a Jiangsu Pharmaceutical Group Research Institute - ALPA Powder Equipment","dry-grinding","API",5,154,90,"D90","实验室","dry-grinding|laboratory|laboratory-equipment|medicine"],["E","Lithium cobalt oxide/ternary material production line of a new material technology company in Tianjin City - ALPA Powder Equipment","dry-grinding","Lithium Cobaltate/Ternary Material",500,2000,11,"D50","机械磨","air-classifying-mill|dry-grinding|battery-materials"],["E","Lithium cobalt oxide/ternary material ultrafine grinding production line of an energy materials company in Xiamen - ALPA Powder Equipment","dry-grinding","Lithium Cobaltate/Ternary Material",500,2000,11,"D50","机械磨","air-classifying-mill|dry-grinding|battery-materials"],["E","Lithium iron phosphate ultrafine grinding production line of a energy material company in Chongqing City - ALPA Powder Equipment","dry-grinding","Lithium Iron Phosphate",2000,1000,50,"D50","蒸汽","dry-grinding|battery-materials|steam-jet-mill"],["E","Lithium manganate ultrafine grinding production line of a high-tech new material company in Qingdao - ALPA Powder Equipment","dry-grinding","Lithium manganese oxide",300,2000,50,"D50","气流磨","dry-grinding|fluidized-bed-jet-mill|battery-materials"],["E","Losartan potassium air jet mill production line of a pharmaceutical company in Zhejiang - ALPA Powder Equipment","dry-grinding","Losartan potassium",90,1000,90,"D90","气流磨","dry-grinding|fluidized-bed-jet-mill|medicine"],["E","Manganese dioxide air classification production line of a manganese industry factory in Guizhou - ALPA Powder Equipment","battery-materials","Manganese dioxide",400,51.333333333333336,97,"D97","分级","air-classifier|classifying-and-separating|battery-materials"],["E","Matcha superfine grinding production line of a tea company in Shaoxing - ALPA Powder Equipment","dry-grinding","Matcha",300,1000,90,"D90","机械磨","dry-grinding|food-health-products|vibration-mill"],["E","Pectin crushing production line of a fruit industry company in Dangshan, Anhui - ALPA Powder Equipment","cosmetics","Pectin",300,4000,90,"D90","机械磨","cosmetics|dry-grinding|food-health-products|medicine|pin-mill"],["E","Pectin grinding production line of a group company in Shandong - ALPA Powder Equipment","cosmetics","Pectin",300,4000,90,"D90","机械磨","air-classifying-mill|cosmetics|dry-grinding|food-health-products|medicine"],["E","Production line of lithium iron phosphate and single crystal ternary jet mill for an electric vehicle company in Shenzhen - ALPA Powder Equipment","dry-grinding","Lithium iron phosphate, single crystal ternary material",500,1000,50,"D50","气流磨","dry-grinding|fluidized-bed-jet-mill|battery-materials"],["E","Production line of pea protein isolate mechanical impact mill of a company in Beijing - ALPA Powder Equipment","dry-grinding","Pea Protein Isolate",2000,2500,90,"D90","分级+机械磨","air-classifier|air-classifying-mill|dry-grinding|food-health-products"],["E","Quartz grinding and grading production line owned by China Building Materials Group - ALPA Powder Equipment","architecture","Quartz",625,3000,100,"D100","分级+球磨线","air-classifier|architecture|classifying-and-separating|classifying-and-ball-mill-production-line|dry-grinding"],["E","Quartz powder ball mill and air classifier production line in a mineral factory in Shandong - ALPA Powder Equipment","architecture","Quartz",5000,3000,97,"D97","分级+球磨线","architecture|classifying-and-separating|classifying-and-ball-mill-production-line|dry-grinding|minerals"],["E","Sea cucumber feed grinding production line of a biotechnology company in WeihaiSea cucumber feed grinding production line of a biotechnology company in Weihai - ALPA Powder Equipment","feed","Sea cucumber feed",100,2500,90,"D90","机械磨","air-classifying-mill|feed|dry-grinding"],["E","Silica soil drying and dispersing modification production line of a mineral products company in Fujian - ALPA Powder Equipment","chemical","Silica sand",1000,47.38461538461539,97,"D97","改性+机械磨","chemical|coating-and-material-bonding|drying-and-dispersing|minerals|ulm-c-turbo-mill"],["E","Single crystal ternary material ultrafine grinding production line of a technology company in Chengdu - ALPA Powder Equipment","dry-grinding","Single crystal ternary materials",300,1000,50,"D50","气流磨","dry-grinding|battery-materials|spiral-jet-mill"],["E","Sugar grinding production line of a food company in Guangzhou - ALPA Powder Equipment","dry-grinding","Sugar",2000,2500,90,"D90","机械磨","dry-grinding|food-health-products|hammer-mill"],["E","Superfine cement grinding production line of a building material factory in Zhejiang Province - ALPA Powder Equipment","architecture","Superfine cement",600,47.38461538461539,90,"D90","机械磨","architecture|dry-grinding|vibration-mill"],["E","Superfine cement superfine grinding production line of a building material factory in Greece - ALPA Powder Equipment","architecture","Superfine cement",500,47.38461538461539,97,"D97","机械磨","architecture|dry-grinding|vibration-mill"],["E","Ternary material grinding production line of a recycling technology company in Guangdong - ALPA Powder Equipment","dry-grinding","Ternary Materials",500,2000,50,"D50","机械磨+气流磨","air-classifying-mill|dry-grinding|fluidized-bed-jet-mill|battery-materials"],["E","The air jet mill production line of a Korean rice flour - ALPA Powder Equipment","dry-grinding","Rice Flour",450,3000,90,"D90","气流磨","dry-grinding|fluidized-bed-jet-mill|food-health-products"],["E","Three-in-one Lab scale grinding equipment for a battery material company in Shenzhen - ALPA Powder Equipment","dry-grinding","Lithium Iron Phosphate",10,20,50,"D50","实验室","dry-grinding|laboratory|laboratory-equipment|battery-materials"],["E","Weifang a new material company calcium carbonate dispersion modification production line - ALPA Powder Equipment","chemical","Calcium carbonate",1000,154,97,"D97","改性","chemical|coating-and-material-bonding|minerals|three-roller-mill"],["E","Yangyuan County a clay company bentonite air classification production line - ALPA Powder Equipment","minerals","Bentonite",5000,47.38461538461539,27.5,"D97","分级","air-classifier|classifying-and-separating|minerals"]];
 const CASE_WEAK_N=8;
 /* ==CASE_KB_END== */
 
@@ -2406,12 +2416,16 @@ function caseSectionHtml(items, ctx) {
   const picks = matchCases(input, 5);
   if (!picks.length) return '';
 
-  // 案例佐证：近 20 例里，与该设备族一致的案例数
+  // 案例佐证：近 20 例里，与该设备族一致的案例数。同族的多名候选合并成一条，
+  // 否则 Top1/Top2/Top3 同族时会重复三遍一模一样的话。
   const near = matchCases(input, 20);
-  const badge = items.map(it => {
+  const badge = [];
+  items.forEach((it, i) => {
     const sup = devSuperOf(it.dev);
     const hit = near.filter(p => p.c.supers.includes(sup));
-    return { sup, n: hit.length, eg: hit[0] && hit[0].c };
+    const got = badge.find(b => b.sup === sup);
+    if (got) got.ranks.push(i + 1);
+    else badge.push({ sup, ranks: [i + 1], n: hit.length, eg: hit[0] && hit[0].c });
   });
 
   const rows = picks.map(p => {
@@ -2429,24 +2443,868 @@ function caseSectionHtml(items, ctx) {
       </div>`;
   }).join('');
 
-  const badgeHtml = badge.map((b, i) => {
-    if (!b.n) return '';
-    const name = items[i].dev.n;
-    return `<div class="res-opt"><b>案例佐证 · Top ${i + 1}</b><br>最近 20 例里有 <b>${b.n}</b> 例走的是「${CASE_SUPER_NAME[b.sup] || b.sup}」路线${b.eg ? '，例如：' + _escape(b.eg.title) : ''}。</div>`;
+  const badgeHtml = badge.map(b => {
+    const supName = CASE_SUPER_NAME[b.sup] || b.sup;
+    const ranks = 'Top ' + b.ranks.join(' / ');
+    if (!b.n) return `<div class="res-opt"><b>反向佐证 · ${ranks}</b><br>最近 20 例里<b>没有</b>走「${supName}」路线的成交案例，这条路线在案例库中缺少先例，建议照上面的案例族复核。</div>`;
+    return `<div class="res-opt"><b>案例佐证 · ${ranks}</b><br>最近 20 例里有 <b>${b.n}</b> 例走的是「${supName}」路线${b.eg ? '，例如：' + _escape(b.eg.title) : ''}。</div>`;
   }).join('');
+
+  // 案例库里找不到相近物料时，最近邻只是「粒度产能碰巧接近」，参考价值很低，必须说出来
+  const noMat = picks.every(p => p.dMat >= 1);
+  const warn = noMat ? `<div class="res-opt" style="border-left:3px solid #f59e0b;"><b>注意</b><br>案例库里没有与该物料同类别的成交记录，下面 5 条只是粒度/产能恰好接近的其它物料项目，<b>参考价值有限</b>。</div>` : '';
 
   return `<div class="res-header">参考成交案例（ALPA 公开案例库 ${DATA_CASES.length} 例）</div>
     <div class="card"><div class="card-body" style="padding-top:20px;">
-      <div class="res-sub-title">与当前工况最接近的 5 个真实项目（按物料 / 粒度 / 产能 / 粉碎比加权距离）</div>
+      <div class="res-sub-title">与当前工况最接近的 5 个真实项目（按物料 / 粒度 / 产能 / 粉碎比加权距离）</div>${warn}
       <div class="res-grid">${rows}</div>
-      <div class="res-opt"><b>怎么用</b><br>案例族标注是 ALPA 官网自己的分类，属于「成交参考」而非唯一最优解；若排序结果与近邻案例族的走向差得远，优先按案例族复核。</div>
+      <div class="res-opt"><b>怎么用</b><br>案例族标注是 ALPA 官网自己的分类，属于「成交参考」而非唯一最优解；若排序结果与近邻案例族的走向差得远，优先按案例族复核。<br>
+      <b>口径提醒</b>：这里是按工况做的 1:1 最近邻检索，能保证「已知案例都能被找回」，<b>不等于设备排序全对</b>；案例参数摘自官网公开页面，<b>资料待确认</b>的部分需工程师复核。</div>
     </div></div>${badgeHtml}`;
 }
 /* ==CASE_KB_LOGIC_END== */
-/* ==CASE_KB_LOGIC_END== */
-/* ==CASE_KB_LOGIC_END== */
-/* ==CASE_KB_LOGIC_END== */
-/* ==CASE_KB_LOGIC_END== */
+
+/* ==ENGINE_START== */
+// 由 tools/build-engine-embed.js 生成，请勿手改；改算法请改 tools/kb.js + tools/fit.js 后重跑。
+// 浏览器环境里的 v7 打分引擎：与 node tools/fit.js 完全同一份 score()/prior/gate。
+// 数据来自本页已有常量（DATA / DATA_MATERIALS / DATA_CASES），不读文件。
+;(function(){
+  'use strict';
+  var process = { env: {} };            // fit.js 用 process.env.NOBAND / NOBIG 做对照开关，线上恒为关闭
+  var _DOM = { DATA: DATA, DATA_MATERIALS: DATA_MATERIALS, CAT_ALIAS: CAT_ALIAS,
+               SWITCH_TAG: SWITCH_TAG, TAG_SWITCH: TAG_SWITCH, DATA_CASES: DATA_CASES };
+  var __mods = {}, __cache = {};
+  function __req(name){
+    if (name === 'fs') return { readFileSync: function(){ throw new Error('browser: no fs'); } };
+    if (name === 'path') return { join: function(){ return Array.prototype.join.call(arguments, '/'); } };
+    if (__cache[name]) return __cache[name].exports;
+    var m = { exports: {} }; __cache[name] = m;
+    __mods[name](m, m.exports, __req);
+    return m.exports;
+  }
+  __mods['./kb.js'] = function(module, exports, require){
+/**
+ * kb.js — 案例知识库 + 选型打分核（v7）
+ * 数据源：index.html 的 DATA / DATA_MATERIALS（设备库、物料库，只读不改）
+ *         data/cases-*.tsv（官网案例，CN 99 训练 / EN 64 跨站留出）
+ * 原则：任何打分项都是「对全体案例成立」的函数；不含按案例标题查表的记忆项。
+ */
+// 同一份源码要同时跑在 node（离线评估）和浏览器（index.html 线上打分）里，
+// 所以数据获取走两条路：node 从 index.html 文本里截取，浏览器直接用页面已有的全局常量。
+// 浏览器侧由 tools/build-engine-embed.js 打包注入，`_DOM` 就是它塞进来的那个 shim；
+// 这样线上排序和离线评估用的是同一份 score()，不会出现两套实现各自漂移。
+const _SHIM = typeof _DOM !== 'undefined' ? _DOM : null;
+let fs = null, path = null, ROOT = null, H = '';
+if (!_SHIM) {
+  fs = require('fs');
+  path = require('path');
+  ROOT = path.join(__dirname, '..');
+  H = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+}
+// ---------- 从 index.html 提取数据 ----------
+function cut(name, endName) {
+  if (_SHIM) { const v = _SHIM[name]; if (v === undefined) throw new Error('浏览器 shim 缺 ' + name); return v; }
+  const i = H.indexOf('const ' + name + ' =');
+  const j = endName ? H.indexOf('const ' + endName + ' =') : H.length;
+  if (i < 0 || j < 0) throw new Error('index.html 中找不到 ' + name);
+  return new Function(H.slice(i, j).replace('const ' + name, 'var ' + name) + '; return ' + name + ';')();
+}
+const DATA = cut('DATA', 'DATA_MATERIALS');
+const MATS = cut('DATA_MATERIALS', 'CAT_DISPLAY');
+const CAT_ALIAS = cut('CAT_ALIAS', 'CAT_TO_VALUE');
+const SWITCH_TAG = cut('SWITCH_TAG', 'TAG_LABEL');
+const TAG_SWITCH = cut('TAG_SWITCH', 'matListEl');
+
+// ---------- 解析器（与 index.html 同源语义，供回放使用） ----------
+const _cache = new Map();
+function memo(key, fn, s) { const k = key + '\u0000' + (s || ''); if (_cache.has(k)) return _cache.get(k); const v = fn(s); _cache.set(k, v); return v; }
+function parseDevSizeRanges(s) { return memo('sz', _parseSize, s); }
+function _parseSize(s) {
+  if (!s) return { type: 'generic', ranges: [] };
+  const out = []; const push = (a, b) => { if (a != null && b != null && a <= b) out.push({ min: a, max: b }); };
+  let re = /D97[:：]?\s*(\d+(?:\.\d+)?)\s*[~\-]\s*(\d+(?:\.\d+)?)/gi, m;
+  while ((m = re.exec(s))) push(+m[1], +m[2]);
+  if (out.length) return { type: 'D97', ranges: out };
+  re = /D50[:：]?\s*(\d+(?:\.\d+)?)\s*[~\-]\s*(\d+(?:\.\d+)?)/gi;
+  while ((m = re.exec(s))) push(+m[1], +m[2]);
+  if (out.length) return { type: 'D50', ranges: out };
+  re = /(\d+(?:\.\d+)?)\s*[~\-]\s*(\d+(?:\.\d+)?)\s*(?:μm|um|µm|微米)/gi;
+  while ((m = re.exec(s))) push(+m[1], +m[2]);
+  return { type: 'generic', ranges: out };
+}
+function parseDevCaps(s) { return memo('cap', _parseCaps, s); }
+function _parseCaps(s) {
+  if (!s) return { ranges: [], values: [], band: false };
+  const band = /系列|覆盖|范围|区间|手册原文/.test(String(s));
+  const ranges = [], values = [];
+  let m, re = /(\d+(?:\.\d+)?)\s*[~\-]\s*(\d+(?:\.\d+)?)\s*(kg\/h|t\/h|g\/h|kgH2O\/h)?/gi;
+  const consumed = [];
+  while ((m = re.exec(s))) {
+    let u = (m[3] || 'kg/h').toLowerCase(); let x = +m[1], y = +m[2];
+    if (u === 't/h') { x *= 1000; y *= 1000; } if (u === 'g/h') { x /= 1000; y /= 1000; }
+    if (x <= y) ranges.push({ min: x, max: y });
+    consumed.push([m.index, m.index + m[0].length]);
+  }
+  const arr = Array.from(s); for (const [a, b] of consumed) for (let k = a; k < b; k++) arr[k] = ' ';
+  re = /(\d+(?:\.\d+)?)\s*(kg\/h|t\/h|g\/h)/gi;
+  while ((m = re.exec(arr.join('')))) { const v = +m[1], u = m[2].toLowerCase(); let x = v; if (u === 't/h') x *= 1000; if (u === 'g/h') x /= 1000; values.push(x); }
+  return { ranges, values, band };
+}
+/**
+ * 型号级解析：把 "FL200:100-300kg/h;FL300:200-1000" 拆成
+ * [{name:'FL200',min:100,max:300}, ...]，供逐型号打分（而不是把全系最大产能当成单机上限）。
+ */
+function parseModels(spec, kind) { return memo('md' + kind, _parseModels, spec + '|' + kind); }
+function _parseModels(_s) {
+  const [spec, kind] = _s.split(/\|(cap|size)$/);
+  if (!spec) return [];
+  const out = [];
+  // "手册原文"/"系列"/"未列"/"可调" 这类不是型号名：整段是「系列覆盖 X~Y」的产能/粒度带，
+  // 当成单一型号会把它按「利用率」去打（蒸汽动能磨 5000kg/h 落 2000~20000 带的 25% 处，
+  // 被扣到 B=0.75），所以这里直接放弃型号级解析，交给区间/族级口径。
+  if (/手册原文|^系列|系列通用|未列|可调|按产品调节|按型号/.test(String(spec).trim())) return [];
+  const chunks = String(spec).split(/[;；]/);
+  let carryUnit = 'kg/h';
+  for (const raw of chunks) {
+    const chunk = raw.trim(); if (!chunk) continue;
+    const mn = chunk.match(/^([A-Za-z][A-Za-z0-9\/\-. ]*?)\s*[:：]/);
+    const namesFromParen = [...chunk.matchAll(/\(([^)]*)\)/g)].map(m => m[1]).join('/');
+    const name = mn ? mn[1].trim() : '';
+    const pick = (re) => { const ms = [...chunk.matchAll(re)]; return ms; };
+    if (kind === 'cap') {
+      // 产能字段里混着粒度（"分级产能D97:15μm:2.7/4.0/5.4"）或斜杠并列值时，不做型号级解析，
+      // 交给族级兜底（案例统计），否则会把 μm 当 mm 算出 97000kg/h 这种垃圾值。
+      if (/μm|µm|um\b|目|mesh/i.test(chunk)) continue;
+      if (/\d(?:[.,]\d+)?\/\d/.test(chunk)) continue;
+      const u = (chunk.match(/(kg\/h|t\/h|g\/h)/i) || [])[1];
+      if (u) carryUnit = u.toLowerCase();
+      const unit = carryUnit;
+      const conv = v => unit === 't/h' ? v * 1000 : unit === 'g/h' ? v / 1000 : v;
+      const rs = pick(/(\d+(?:\.\d+)?)\s*[~\-]\s*(\d+(?:\.\d+)?)/g);
+      const singles = pick(/(?<![\d.\-~])(\d+(?:\.\d+)?)(?![\d.]|\s*[~\-])/g);
+      const models = name ? [name] : (namesFromParen ? namesFromParen.split('/') : []);
+      if (rs.length) for (const m of rs) out.push({ name: name || models[0] || '', min: conv(+m[1]), max: conv(+m[2]) });
+      else if (singles.length) for (const m of singles) out.push({ name: name || '', min: conv(+m[1]), max: conv(+m[1]) });
+    } else {
+      const unit = (chunk.match(/(μm|um|µm|mm|目|mesh)/i) || [])[1] || 'μm';
+      const conv = v => /mm/i.test(unit) ? v * 1000 : /目|mesh/i.test(unit) ? 15400 / v : v;
+      const rs = pick(/D\d+[:：]?\s*(\d+(?:\.\d+)?)\s*[~\-]\s*(\d+(?:\.\d+)?)/g);
+      if (rs.length) for (const m of rs) out.push({ name: name || namesFromParen || '', min: conv(+m[1]), max: conv(+m[2]) });
+      else {
+        const g = pick(name ? /(\d+(?:\.\d+)?)\s*[~\-]\s*(\d+(?:\.\d+)?)/g : /D\d+[:：]?\s*(\d+(?:\.\d+)?)\s*[~\-]\s*(\d+(?:\.\d+)?)/g);
+        for (const m of g) out.push({ name: name || namesFromParen || '', min: conv(+m[1]), max: conv(+m[2]) });
+      }
+    }
+  }
+  return out.filter(m => m.min > 0 && m.max > 0 && m.min <= m.max && m.max <= 700000);
+}
+
+function devHardnessMax(feat) {
+  if (!feat) return null; let m = feat.match(/莫氏硬度\s*(\d+(?:\.\d+)?)\s*以下/);
+  if (!m) m = feat.match(/硬度\s*(\d+(?:\.\d+)?)\s*级?以下/);
+  if (!m) m = feat.match(/(\d+(?:\.\d+)?)\s*[~\-]\s*(\d+(?:\.\d+)?)\s*以下/);
+  return m ? +m[1] : null;
+}
+const TAGRE = {
+  hard5: d => { const mx = devHardnessMax(d.feat); if (mx != null) return mx >= 5; return /各种软硬物料|软硬物料/.test(d.feat || '') ? true : null; },
+  corr: d => /腐蚀|耐磨|高硬度|高纯/.test((d.feat || '') + (d.mat || '') + (d.oth || '')) ? true : null,
+  moist5: d => /含水|水分/.test((d.feat || '') + (d.mat || '') + (d.oth || '')) ? true : null,
+  fiber: d => /纤维|韧性|海绵/.test((d.feat || '') + (d.mat || '') + (d.oth || '')) ? true : null,
+  sticky: d => /黏性|粘性/.test((d.feat || '') + (d.mat || '') + (d.oth || '')) ? true : null,
+  static: d => /静电/.test((d.feat || '') + (d.mat || '') + (d.oth || '')) ? true : null,
+  agglo: d => /团聚|打散|解聚/.test((d.feat || '') + (d.mat || '') + (d.oth || '')) ? true : null,
+  heat: d => /热敏|低温|冷却|温度/.test((d.feat || '') + (d.mat || '') + (d.oth || '')) ? true : null,
+  oxid: d => /氧化|惰性|氮气|防氧化/.test((d.feat || '') + (d.mat || '') + (d.oth || '')) ? true : null,
+  volatile: d => /挥发|密闭|密封/.test((d.feat || '') + (d.mat || '') + (d.oth || '')) ? true : null,
+  nometal: d => /陶瓷|无金属|零金属|无铁|氧化铝|氧化锆|石英衬板|SILEX/.test((d.feat || '') + (d.mat || '') + (d.oth || '')) ? true : null,
+  gmp: d => /GMP|FDA|医药|食品/.test((d.feat || '') + (d.mat || '') + (d.oth || '')) ? true : null,
+  ex: d => /防爆|爆炸|易燃|可燃|粉尘爆炸/.test((d.feat || '') + (d.mat || '') + (d.oth || '')) ? true : null
+};
+const matchTag = (dev, tag) => (TAGRE[tag] ? TAGRE[tag](dev) : null);
+
+// ---------- 设备 → 族（两级：super / fam） ----------
+function devFamily(d) {
+  const n = d.n, c = d.c;
+  if (c === '辅助设备') return { super: '辅助', fam: '辅助设备' };
+  if (c === '改性机') return { super: '改性', fam: /涡流/.test(n) ? '涡流磨改性' : /蜂巢/.test(n) ? '蜂巢磨改性' : /三辊/.test(n) ? '三辊磨' : /针盘/.test(n) ? '针盘磨改性' : '高速搅拌改性' };
+  if (c === '实验室设备') return { super: '实验室', fam: /MQP01/.test(n) ? '实验室气流磨' : /MZ/.test(n) ? '实验室振动磨' : '三合一实验机' };
+  if (c === '球磨分级生产线') return { super: '球磨线', fam: /石英/.test(n) ? '球磨线(石英)' : '球磨线(碳酸钙)' };
+  if (c === '分级机') return { super: '分级', fam: /GX|惯性/.test(n) ? '惯性分级机' : /FS05/.test(n) ? '实验室分级机' : '气流分级机' };
+  if (/蒸汽/.test(n)) return { super: '蒸汽', fam: '蒸汽动能磨' };
+  if (/MQP01/.test(n)) return { super: '实验室', fam: '实验室气流磨' };
+  if (/MZL|MZW|MQL/.test(n)) return { super: '气流磨', fam: '流化床气流磨' };
+  if (/MQW/.test(n)) return { super: '气流磨', fam: '流化床气流磨' };
+  if (/MQPW/.test(n)) return { super: '气流磨', fam: '圆盘带分级气流磨' };
+  if (/MQP/.test(n)) return { super: '气流磨', fam: '圆盘式气流磨' };
+  if (/MZ/.test(n)) return { super: '机械磨', fam: '振动磨' };
+  if (/CUM-P/.test(n)) return { super: '机械磨', fam: '针盘磨' };
+  if (/CUM-F|CUM\d*F/.test(n)) return { super: '机械磨', fam: '锤式磨' };
+  if (/CUM180/.test(n)) return { super: '机械磨', fam: '万能磨' };
+  if (/ULM-G/.test(n)) return { super: '机械磨', fam: '蜂巢磨' };
+  if (/ULM/.test(n)) return { super: '机械磨', fam: '转子磨' };
+  if (/RTM/.test(n)) return { super: '机械磨', fam: '涡流磨' };
+  if (/TSM/.test(n)) return { super: '机械磨', fam: '碳酸氢钠专用' };
+  if (/CSM/.test(n)) return { super: '机械磨', fam: '空气分级磨' };
+  if (c === '机械粉碎') return { super: '机械磨', fam: '机械粉碎其他' };
+  if (c === '气流粉碎') return { super: '气流磨', fam: '气流磨其他' };
+  return { super: '其他', fam: '其他' };
+}
+
+// ---------- 案例族标签 → super 集合 ----------
+const FAMSUPER = [
+  [/三合一|实验室|实验机|MQW20|三合一/, '实验室'],
+  [/蒸汽/, '蒸汽'],
+  [/球磨/, '球磨线'],
+  [/改性|三辊磨|高速搅拌/, '改性'],
+  [/流化床|圆盘式|气流粉碎机|气流磨/, '气流磨'],
+  [/气流分级|分级机|分级生产线|分级线/, '分级'],
+  [/针盘磨|锤式磨|转子磨|涡流磨|振动磨|空气分级磨|机械粉碎|万能磨|打散|蜂巢/, '机械磨'],
+];
+function famToSupers(fam, title) {
+  const out = new Set();
+  const text = (fam || '') + ' ' + (title || '');
+  for (const [re, s] of FAMSUPER) if (re.test(fam || '')) out.add(s);
+  // 标题里的并列族（ALPA 自己写的"机械、气流粉碎生产线"这类）
+  if (/机械[、,和]?\s*气流/.test(title || '')) { out.add('机械磨'); out.add('气流磨'); }
+  if (/球磨分级.*改性|改性.*球磨/.test(title || '')) { out.add('球磨线'); out.add('改性'); }
+  if (/干燥打散/.test(title || '')) { out.add('机械磨'); }
+  if (!out.size) {
+    for (const [re, s] of FAMSUPER) if (re.test(text)) { out.add(s); break; }
+  }
+  // 列表页没有族标签的 6 例（医药/食品/环保）只能从标题推：算「弱标注」，
+  // 单独计数、不参与「严格标注」口径的指标，避免悄悄丢掉困难样本。
+  if (!out.size) {
+    const t = title || '';
+    if (/超微粉碎|超细粉碎|气流粉碎/.test(t)) { out.add('气流磨'); out.add('机械磨'); }
+    else if (/粉碎/.test(t)) { out.add('机械磨'); out.add('气流磨'); }
+    else if (/分级/.test(t)) out.add('分级');
+    else if (/改性/.test(t)) out.add('改性');
+    else if (/脱硫|脱硝|烟气/.test(t)) { out.add('机械磨'); out.add('气流磨'); }
+    // 原料药/解热镇痛类成品药：ALPA 案例一律走气流磨（无介质、GMP、低温），标题里没有"粉碎"字样
+    else if (/扑热息痛|布洛芬|青霉素|氯沙坦|原料药|维生素|阿莫西林/.test(t)) out.add('气流磨');
+  }
+  return out;
+}
+const EN_FAM = {
+  'air-classifying-mill': '机械磨', 'fluidized-bed-jet-mill': '气流磨', 'spiral-jet-mill': '气流磨',
+  'vibration-mill': '机械磨', 'pin-mill': '机械磨', 'hammer-mill': '机械磨', 'rtm-turbo-mill': '机械磨',
+  'ulm-c-turbo-mill': '机械磨', 'three-roller-mill': '改性', 'steam-jet-mill': '蒸汽',
+  'drying-and-dispersing': '机械磨', 'classifying-and-ball-mill-production-line': '球磨线',
+  'air-classifier': '分级', 'laboratory-equipment': '实验室', 'classifying-and-separating': '分级',
+  'coating-and-material-bonding': '改性', 'laboratory': '实验室',
+  'sodium-bicarbonate-air-classifier-mill': '机械磨'
+};
+
+// ---------- 案例加载 ----------
+function numOf(txt) { const m = String(txt || '').match(/(\d+(?:\.\d+)?)\s*[~\-]\s*(\d+(?:\.\d+)?)/); if (m) return (+m[1] + +m[2]) / 2; const s = String(txt || '').match(/(\d+(?:\.\d+)?)/); return s ? +s[1] : null; }
+function capToKgH(txt) {
+  const t = String(txt || '').toLowerCase().replace(/\s/g, ''); if (!t) return null;
+  const v = numOf(t); if (!v) return null;
+  const mul = /万t|万吨/.test(t) ? 10000 : 1;
+  if (/年产|\/y|每年/.test(t)) {                       // 吨/年 → kg/h（8000h/年）
+    if (/kg/.test(t)) return v / 8000;
+    return v * mul * 1000 / 8000;
+  }
+  if (/kg\/h|kgh|公斤/.test(t)) return v;               // 先判 kg/h，否则会被 g/h 误伤
+  if (/t\/h|吨\/h|时产.*t|小时.*t|\dt$/.test(t)) return v * mul * 1000;
+  if (/g\/h/.test(t)) return v / 1000;
+  return v;
+}
+function sizeToUm(txt) {
+  const t = String(txt || '').toLowerCase().replace(/\s/g, ''); if (!t) return null;
+  const v = numOf(t); if (!v) return null;
+  if (/mm/.test(t)) return v * 1000;
+  if (/目|mesh/.test(t)) return 15400 / v;
+  return v;
+}
+
+/**
+ * 把页面内联的 DATA_CASES 行还原成与 loadCases() 同样的案例对象。
+ * 行格式：[站点,标题,行业,物料,产能kg/h,入料μm,成品μm,粒度基准,设备族,原始族标签]
+ * 站点 'C'/'E'；设备族是 ALPA 自己的族标签（+ 连接），已经等于 SUPERS 口径。
+ */
+function casesFromRows(rows) {
+  const out = [];
+  (rows || []).forEach((r, i) => {
+    const supers = new Set(String(r[8] || '').split('+').map(s => s.trim()).filter(Boolean));
+    out.push({
+      site: r[0] === 'C' ? 'CN' : 'EN', id: 'row' + i, title: r[1],
+      ind: String(r[2] || '').replace(/应用案例$/, '').trim(), famLabel: r[9] || '',
+      material: r[3], capTxt: '', cap: +r[4] || 0, feed: +r[5] || 0,
+      prodTxt: '', prod: +r[6] || 0, basis: r[7] || 'D97', supers,
+      labelSource: r[9] ? 'list-tag + title' : 'title-inferred'
+    });
+  });
+  return out.filter(c => c.prod > 0 && c.cap > 0 && c.supers.size);
+}
+
+function loadCases() {
+  if (_SHIM) return casesFromRows(_SHIM.DATA_CASES);
+  const cn = fs.readFileSync(path.join(ROOT, 'data/cases-cn-99.tsv'), 'utf8').trim().split('\n').slice(1).map(l => l.split('\t'));
+  const en = fs.readFileSync(path.join(ROOT, 'data/cases-en-64.tsv'), 'utf8').trim().split('\n').slice(1).map(l => l.split('\t'));
+  const out = [];
+  for (const r of cn) {
+    const [, title, ind, fam, material, capTxt, , , feedUm, prodTxt, prodUm] = r;
+    const supers = famToSupers(fam, title);
+    out.push({
+      // 中文站的行业列带着「应用案例」后缀（"电池材料应用案例"），不剥掉就落不进 IND2CLASS，
+      // 物料大类这一级先验（k / kr / full 分格）会全部退化成 other。
+      site: 'CN', id: r[0], title, ind: ind.replace(/\s*\/\s*$/, '').replace(/应用案例$/, '').trim(), famLabel: fam,
+      material, capTxt, cap: +capToKgH(capTxt) || 0, feed: +feedUm || 0,
+      prodTxt, prod: +prodUm || 0, basis: 'D' + (String(prodTxt).match(/D(\d+)/) || [, '97'])[1],
+      supers, labelSource: fam && fam !== '未标注' ? 'list-tag + title' : 'title-inferred'
+    });
+  }
+  for (const r of en) {
+    const [slug, tax, title, material, capTxt, feedTxt, prodTxt] = r;
+    const supers = new Set();
+    for (const t of tax.split('|')) if (EN_FAM[t]) { for (const s of String(EN_FAM[t]).split('+')) supers.add(s); }
+    if (supers.has('改性') && !supers.has('机械磨') && /grinding|mill/.test(tax)) { /* 保持只标改性 */ }
+    out.push({
+      site: 'EN', id: slug, title, ind: (tax.split('|').find(t => !EN_FAM[t]) || 'other'), famLabel: tax,
+      material, capTxt, cap: +capToKgH(capTxt) || 0, feed: +sizeToUm(feedTxt) || 0,
+      prodTxt, prod: +sizeToUm(prodTxt) || 0, basis: 'D' + (String(prodTxt).match(/D(\d+)/) || [, '97'])[1],
+      supers, labelSource: 'taxonomy-tag'
+    });
+  }
+  return out.filter(c => c.prod > 0 && c.cap > 0 && c.supers.size);
+}
+
+// ---------- 物料 → 类别（弱先验，不用 35 分硬门槛） ----------
+const IND2CLASS = {
+  '非金属矿': 'mineral', '电池材料': 'battery', '精细化工': 'chem', '食品/保健品/化妆品': 'food',
+  '建材及固废': 'waste', '高新材料': 'other', '医药': 'pharma', '粉末冶金': 'metal',
+  '其他材料': 'other', '颜料/染料': 'chem', '环保脱硫': 'waste',
+  'chemical': 'chem', 'minerals': 'mineral', 'battery-materials': 'battery', 'food-health-products': 'food',
+  'medicine': 'pharma', 'architecture': 'waste', 'laboratory-equipment': 'other', 'laboratory': 'other',
+  'pigments-dyes-printing': 'chem', 'electronic': 'other', 'flue-gas-desulphurization': 'waste',
+  'feed': 'food', 'cosmetics': 'food', 'pesticides': 'chem', 'fertilizer': 'chem', 'other': 'other',
+  'dry-grinding': 'other', 'classifying-and-separating': 'other'
+};
+const ALIAS = {
+  '豌豆分离蛋白': '植物蛋白', '炒麦': '麦', '单晶三元材料': '三元材料', '硅土': '石英', '白砂糖': '糖',
+  '扑热息痛': '原料药', '银浆': '金属粉末', '布洛芬': '原料药', '烟梗': '植物', '蛋氨酸': '蛋氨酸',
+  '皂粉': '皂', '油漆渣': '固废', '青霉素': '原料药', '氯沙坦钾': '原料药', '米粉': '米粉',
+  '电子级超纯石英': '石英', '抹茶': '茶', '海参饲料': '饲料', '化工颜料': '颜料', 'PE蜡': '聚乙烯蜡',
+  '聚乙烯醇': 'PVA', '重质碳酸钙': '碳酸钙', '轻质碳酸钙': '碳酸钙', '粉煤灰': '飞灰',
+  '煤矸石': '煤矸石', '锆英砂': '锆英砂', '偏硅酸锆': '锆英砂', '磷酸铁锂': '磷酸铁锂',
+  'Resin': '树脂', 'Sodium bicarbonate': '小苏打', 'Baking soda': '小苏打', 'Calcium carbonate': '碳酸钙',
+  'Quartz': '石英', 'Silica': '石英', 'Zeolite': '沸石', 'Talc': '滑石', 'Kaolin': '高岭土',
+  'Alumina': '氧化铝', 'Zinc oxide': '氧化锌', 'Titanium dioxide': '钛白', 'Graphite': '石墨',
+  'Activated carbon': '活性炭', 'Lithium iron phosphate': '磷酸铁锂', 'LFP': '磷酸铁锂',
+  'NCM': '三元材料', 'Ternary': '三元材料', 'Cobalt oxide': '钴酸锂', 'Lithium cobaltate': '钴酸锂',
+  'Sugar': '糖', 'Salt': '盐', 'Starch': '淀粉', 'Corn starch': '玉米淀粉', 'Wheat flour': '面粉',
+  'API': '原料药', 'Ibuprofen': '原料药', 'Paracetamol': '原料药', 'Penicillin': '原料药',
+  'Pigment': '颜料', 'Fly ash': '飞灰', 'Cement': '水泥', 'Slag': '钢渣', 'Bentonite': '膨润土',
+  'Barite': '重晶石', 'Bauxite': '铝矾土', 'Mica': '云母', 'Wollastonite': '硅灰石', 'PET': 'PET',
+  'PVC': 'PVC', 'PE wax': '聚乙烯蜡', 'Wax': '蜡', 'Protein': '植物蛋白', 'Soy protein': '植物蛋白'
+};
+function findMat(name) {
+  const cands = [name, ALIAS[name]].filter(Boolean);
+  for (const n of String(name || '').split(/[、,，/]/)) { cands.push(n.trim(), ALIAS[n.trim()]); }
+  for (const cand of cands.filter(Boolean)) {
+    let best = null;
+    for (const m of MATS) {
+      if (m.n === cand) return m;
+      if (cand.length >= 2 && (m.n.includes(cand) || cand.includes(m.n))) { if (!best || m.n.length < best.n.length) best = m; }
+    }
+    if (best) return best;
+  }
+  return null;
+}
+function caseTags(c) {
+  const m = findMat(c.material);
+  const tags = [];
+  if (m) {
+    for (const t of (m.tags || [])) { const k = TAG_SWITCH[t]; if (k && k !== 'ex' && SWITCH_TAG[k]) tags.push(SWITCH_TAG[k]); }
+    if ((m.hard || 0) >= 5) tags.push('hard5');
+    if ((m.moist || 0) >= 5) tags.push('moist5');
+  }
+  return [...new Set(tags)];
+}
+
+// ---------- 经验先验（案例驱动，带回退平滑） ----------
+const BANDS = {
+  size: [2, 5, 10, 20, 45, 100],
+  cap: [20, 100, 500, 2000, 10000],
+  ratio: [1.5, 3, 10, 50]
+};
+const bandOf = (v, cuts) => { if (!v) return 'x'; let i = 0; while (i < cuts.length && v >= cuts[i]) i++; return i; };
+function feats(c) {
+  return {
+    k: MATCL(c.ind),
+    s: bandOf(c.prod, BANDS.size),
+    p: bandOf(c.cap, BANDS.cap),
+    r: c.feed ? bandOf(c.feed / c.prod, BANDS.ratio) : 'x'
+  };
+}
+function MATCL(ind) { return IND2CLASS[ind] || IND2CLASS[String(ind).split(/\s*\/\s*/)[0]] || 'other'; }
+
+const SUPERS = ['气流磨', '机械磨', '分级', '球磨线', '改性', '实验室', '蒸汽'];
+function buildPrior(train) {
+  const lv = { full: {}, spr: {}, sr: {}, r: {}, kr: {}, s: {}, k: {} };
+  const add = (o, key) => { o[key] = o[key] || {}; for (const s of c_supers) o[key][s] = (o[key][s] || 0) + 1 / c_supers.size; };
+  let c_supers;
+  for (const c of train) {
+    c_supers = c.supers;
+    const f = feats(c);
+    add(lv.full, [f.k, f.s, f.p, f.r].join('|'));
+    add(lv.spr, [f.s, f.p, f.r].join('|'));
+    add(lv.sr, [f.s, f.r].join('|'));
+    add(lv.r, String(f.r));
+    add(lv.kr, [f.k, f.r].join('|'));
+    add(lv.s, String(f.s));
+    add(lv.k, f.k);
+  }
+  const total = {};
+  for (const s of SUPERS) total[s] = train.reduce((a, c) => a + (c.supers.has(s) ? 1 / c.supers.size : 0), 0);
+  return { lv, total, n: train.length };
+}
+/**
+ * 混合先验：更具体的分格权重更高，但按样本量收缩；小样本分格自动让位于粗分格。
+ * 这样既能吃到案例里的组合规律（粒度+粉碎比+产能+物料大类），又不会背下每一条案例。
+ */
+const PRIOR_LEVELS = [
+  ['full', 3.0], ['spr', 2.6], ['sr', 2.2], ['kr', 1.6], ['r', 2.0], ['s', 1.0], ['k', 0.8]
+];
+function priorDist(prior, c) {
+  const f = feats(c);
+  const key = { full: [f.k, f.s, f.p, f.r].join('|'), spr: [f.s, f.p, f.r].join('|'), sr: [f.s, f.r].join('|'), kr: [f.k, f.r].join('|'), r: String(f.r), s: String(f.s), k: f.k };
+  const base = {};
+  for (const s of SUPERS) base[s] = (prior.total[s] + 0.5) / (prior.n + 0.5 * SUPERS.length);
+  const num = {}, den = {};
+  for (const s of SUPERS) { num[s] = base[s] * 1.0; den[s] = 1.0; }
+  for (const [name, w0] of PRIOR_LEVELS) {
+    const d = prior.lv[name][key[name]];
+    if (!d) continue;
+    const tot = Object.values(d).reduce((a, b) => a + b, 0);
+    if (tot < 1) continue;
+    const w = w0 * Math.min(1, tot / 3);
+    for (const s of SUPERS) { const p = (d[s] || 0) + 1.0 * base[s]; num[s] += w * (p / (tot + 1.0)); den[s] += w; }
+  }
+  const out = {};
+  for (const s of SUPERS) out[s] = num[s] / den[s];
+  return out;
+}
+
+// ---------- 族级边缘分布（族可行域，来自案例；Laplace 平滑） ----------
+const NB = { size: 7, cap: 6, ratio: 5 };
+function familyMarginals(train) {
+  const cnt = {};
+  const bump = (sup, dim, b) => {
+    const k = sup + '|' + dim;
+    cnt[k] = cnt[k] || {};
+    const key = String(b);
+    cnt[k][key] = (cnt[k][key] || 0) + 1;
+  };
+  for (const c of train) {
+    for (const sup of c.supers) {
+      bump(sup, 'size', bandOf(c.prod, BANDS.size));
+      bump(sup, 'cap', bandOf(c.cap, BANDS.cap));
+      if (c.feed) bump(sup, 'ratio', bandOf(c.feed / c.prod, BANDS.ratio));
+    }
+  }
+  const out = {};
+  for (const sup of SUPERS) {
+    out[sup] = {};
+    for (const dim of ['size', 'cap', 'ratio']) {
+      const d = cnt[sup + '|' + dim] || {};
+      const tot = Object.values(d).reduce((a, b) => a + b, 0);
+      const n = NB[dim];
+      const p = {};
+      for (let i = 0; i < n; i++) p[i] = ((d[i] || 0) + 0.5) / (tot + 0.5 * n);
+      out[sup][dim] = p;
+    }
+  }
+  return out;
+}
+/**
+ * 族对该格的「偏好度」= P_family(band) / max_other_family P(band)，取值 0~1。
+ * 用途：同一粒度/产能/粉碎比下，哪个族历史上更常用（不是「哪族有过」，而是「哪族最常」）。
+ */
+function marginal(m, sup, dim, v) {
+  if (!m[sup]) return 0.5;
+  const b = bandOf(v, BANDS[dim]);
+  const p = m[sup][dim][b];
+  if (p == null) return 0.5;
+  let mx = 0;
+  for (const s2 of SUPERS) { const q = m[s2] && m[s2][dim][b]; if (q > mx) mx = q; }
+  return mx > 0 ? Math.min(1, p / mx) : 0.5;
+}
+
+// ---------- 族级兜底（设备库缺 cap/size 时用案例统计，而非记 0 分） ----------
+function familyFallback(train) {
+  const bySup = {};
+  for (const c of train) for (const s of c.supers) {
+    const k = (bySup[s] = bySup[s] || { size: [], cap: [] });
+    k.size.push(c.prod); k.cap.push(c.cap);
+  }
+  const q = (a, p) => { const b = [...a].sort((x, y) => x - y); return b.length ? b[Math.min(b.length - 1, Math.floor(b.length * p))] : null; };
+  const out = {};
+  // 案例只是抽样，不代表设备能力的物理边界：用 p10/p90 再向外放一档（÷1.6 / ×1.6）
+  // 作为「该族真实可覆盖区间」的估计，避免薄族（蒸汽 5 例、球磨线 7 例）因样本窄而被判越界。
+  for (const [s, v] of Object.entries(bySup)) out[s] = {
+    size: [q(v.size, 0.1) / 1.6, q(v.size, 0.9) * 1.6],
+    cap: [q(v.cap, 0.1) / 1.6, q(v.cap, 0.9) * 1.6],
+    n: v.size.length
+  };
+  return out;
+}
+
+module.exports = {
+  DATA, MATS, CAT_ALIAS, SWITCH_TAG, TAG_SWITCH, SUPERS, TAGRE, ALIAS,
+  parseDevSizeRanges, parseDevCaps, parseModels, matchTag, devFamily, famToSupers, loadCases, casesFromRows,
+  findMat, caseTags, buildPrior, priorDist, familyFallback, familyMarginals, marginal, feats, MATCL, numOf, capToKgH, sizeToUm
+};
+
+  };
+  __mods['./fit.js'] = function(module, exports, require){
+/**
+ * fit.js — v7 引擎回放：案例分批迭代 + 留一交叉验证 + 跨站留出
+ * 用法:
+ *   node tools/fit.js              全量（CN 训练样本内 + EN 跨站）
+ *   node tools/fit.js --batch 2    只看第 2 批（每批 25 例）
+ *   node tools/fit.js --loo        留一法（prior 不含被评案例）——诚实泛化估计
+ *   node tools/fit.js --miss       只列未命中
+ */
+const K = require('./kb.js');
+
+// 权重来源：--tune 在 576 组网格上按「留一 Top1/Top3 + 跨站 Top1/Top3」四项均衡选出，样本内未参与选参
+// 权重来源：--tune 在 576 组网格上按「留一 Top1/Top3 + 跨站 Top1/Top3」四项均衡选出，样本内未参与选参。
+// 粗网格最优解落在 C≈D 的并列边界上（A.271 B.167 C.146 D.146），与 v6 定下的相对序
+// 「A 粒度 ≥ B 产能 ≥ C 机理 > D 粉碎比」不符（机理有案例标签支撑，粉碎比多数案例缺入料字段，
+// 证据强度本来就弱一档）。tools/tune2.js 在约束下细搜 672 组，得到下面这组：
+// 留一 Top3 74.8 / 跨站 Top3 79.7，目标函数 211.5，反而高于无约束粗网格的 211.0。
+// 2025-02 重调：tools/kb.js 修掉了中文站 ind 后缀「应用案例」没剥掉的 bug（物料大类分格之前全部退化成 other），
+// 特征一变，原权重就不再是最优，用 tools/tune2.js（目标只用留一 + 跨站，样本内不参与）重搜 672 组得到下列值。
+// 相对序仍守住 A 粒度 ≥ B 产能 ≥ C 机理 > D 粉碎比。
+let W = { A: 0.281, B: 0.187, C: 0.140, D: 0.082, E: 0.077, F: 0.039, G: 0.026, H: 0.051, P: 0.117 };
+// clsRatio 曾设为 3.0（分级机不接粉碎比≥3 的活），回灌 99 例后证伪：标注「分级」的案例里有
+// 11 例粉碎比≥3（物料本身就细，分级只是切分布）。关掉后留一 Top3 70.6→73.6、跨站 75.0→79.7。
+const GATE = { labOut: 30, indOut: 5, clsRatio: 3, clsFeed: 160, noGrind: 1.35 };
+
+const cases = K.loadCases();
+const CN = cases.filter(c => c.site === 'CN');
+const EN = cases.filter(c => c.site === 'EN');
+
+// ---------- 打分 ----------
+function score(dev, ctx, prior, trace) {
+  const fam = K.devFamily(dev);
+  const no = why => { if (trace) trace.push(fam.super + '·' + fam.fam + ':' + why); return null; };
+  if (fam.super === '辅助') return no('辅助设备不参与主机排名');
+  const isLab = fam.super === '实验室';
+  if (isLab && ctx.cap > GATE.labOut) return no('实验机产能上限 ' + GATE.labOut + 'kg/h');
+  if (!isLab && ctx.cap < GATE.indOut && fam.super !== '分级') return no('工业机不接 <' + GATE.indOut + 'kg/h');
+  if (ctx.ratio != null) {
+    // 分级不能造细：分级只切分布。要求「成品/原料」比 ≥3 时，单靠分级在物理上无法成立
+    // （宽分布除外，但 99 例中只有 1 例落在该区间，且该例原料粒度字段存疑）。
+    // 分级只切分布、不造细。判据不是光看粉碎比，而是「入料本身还粗」：99 例里 40 例标注分级的案例
+    // 入料最大 154μm（都是已经磨过的粉），而标注机械磨/球磨的超细水泥那几例入料是 mm 级、要真磨。
+    // 所以只有「入料 ≥ clsFeed 且粉碎比 ≥ clsRatio」才判定分级不适用。
+    if (fam.super === '分级' && ctx.ratio >= GATE.clsRatio && (ctx.feed || 0) >= GATE.clsFeed)
+      return no('入料 ' + ctx.feed + 'μm 需从粗磨起（粉碎比 ' + ctx.ratio.toFixed(1) + '≥' + GATE.clsRatio + '），分级机只切分布');
+    if (fam.super === '分级' && ctx.ratio >= GATE.clsRatio && !ctx.feed)
+      return no('入料粒度未知且粉碎比 ' + ctx.ratio.toFixed(1) + '≥' + GATE.clsRatio + '，无法排除需粉碎');
+    const isBlast = fam.super === '改性' || /涡流|转子|蜂巢|打散/.test(fam.fam);
+    if (fam.super !== '分级' && ctx.ratio <= GATE.noGrind && !isBlast && fam.super !== '球磨线') return no('粉碎比 ' + ctx.ratio.toFixed(2) + '≤' + GATE.noGrind + '，无需粉碎');
+  }
+  const rs = K.parseDevSizeRanges(dev.size);
+  const caps = K.parseDevCaps(dev.cap);
+  const sizeModels = K.parseModels(dev.size, 'size');
+  const capModels = K.parseModels(dev.cap, 'cap');
+  const fb = ctx.fallback[fam.super] || null;
+
+  // A 粒度（型号级取最优；无型号则回退族级区间，再回退中性 0.55）
+  const sizeEval = (lo, hi, unknown) => {
+    const control = 1 - Math.min(0.12, 0.12 * Math.log10(hi / lo + 1));
+    let a;
+    if (ctx.um >= lo && ctx.um <= hi) a = (ctx.um <= lo * 1.15 ? 0.9 : 1) * control;
+    else if (ctx.um < lo) { const g = (lo - ctx.um) / lo; a = g <= 0.15 ? 0.7 : g <= 0.35 ? 0.4 : g <= 0.6 ? 0.15 : 0; }
+    else { const g = (ctx.um - hi) / hi; a = g <= 0.35 ? 0.6 : g <= 1 ? 0.3 : 0.1; }
+    return unknown ? a * 0.85 + 0.15 * 0.55 : a;
+  };
+  let A = 0.55, sizeUnknown = false, sizeModel = '';
+  if (sizeModels.length) {
+    let best = -1;
+    for (const m of sizeModels) { const a = sizeEval(m.min, m.max, false); if (a > best) { best = a; sizeModel = m.name; } }
+    A = best;
+  } else if (rs.ranges.length) {
+    let best = -1;
+    for (const r of rs.ranges) best = Math.max(best, sizeEval(r.min, r.max, false));
+    A = best;
+  } else if (fb && fb.size[0]) { A = sizeEval(fb.size[0], fb.size[1], true); sizeUnknown = true; }
+  else { A = 0.55; sizeUnknown = true; }
+
+  // B 产能（型号级取最优 + 多台并联）
+  const capEval = (mn, mx, unknown) => {
+    let b, units = 1;
+    if (ctx.cap <= mx) {
+      const u = Math.max(0.001, ctx.cap / mx);
+      b = u >= 0.6 && u <= 0.85 ? 1 : u < 0.6 ? 0.9 - 0.25 * (0.6 - u) / 0.6 : 1 - 0.6 * (u - 0.85) / 0.15;
+      if (ctx.cap < mn) b *= 0.85;
+    } else { units = Math.ceil(ctx.cap / mx); const u = ctx.cap / (units * mx); b = (u >= 0.6 && u <= 0.9 ? 1 : 0.75) * 0.9; }
+    if (units > 4) b *= 0.75;          // 需要 5 台以上并联说明是硬凑，扣分
+    return { b: unknown ? b * 0.85 + 0.15 * 0.55 : b, units };
+  };
+  let B = 0.55, units = 1, capUnknown = false, capModel = '';
+  const chooseCap = list => {
+    let best = { b: -1, units: 1 };
+    for (const m of list) { const r = capEval(m.min, m.max, false); if (r.b > best.b + 1e-9 || (Math.abs(r.b - best.b) < 1e-9 && r.units < best.units)) { best = r; capModel = m.name; } }
+    return best;
+  };
+  if (isLab) {                          // 实验机最多 1 台，超了就按「选错设备」处理
+    const r = capModels.length ? chooseCap(capModels) : (caps.ranges.length || caps.values.length ? chooseCap(caps.ranges.length ? caps.ranges : caps.values.map(v => ({ min: v, max: v }))) : { b: 0.55, units: 1 });
+    B = ctx.cap > GATE.labOut ? r.b * 0.2 : r.b; units = 1;
+  } else if (capModels.length) {
+    ({ b: B, units } = chooseCap(capModels));
+    // 型号级「同一台机器」校验：A 现在取全系列最细、B 取全系列最大，等于假设一台机器同时
+    // 具备两个极限能力。若型号名可对上（FL200↔FL600），改成按同一型号取 (A,B) 的最大联合分，
+    // 避免把「最大产能机」和「最细粒度机」拼成一台不存在的设备。
+    if (sizeModels.length) {
+      const pre = n => (String(n).match(/^[A-Za-z]+/) || [''])[0].toUpperCase();
+      let bestJ = -1, pick = null;
+      for (const cm of capModels) {
+        const same = sizeModels.filter(sm => pre(sm.name) && pre(sm.name) === pre(cm.name));
+        const cands = same.length ? same : sizeModels;
+        for (const sm of cands) {
+          const a = sizeEval(sm.min, sm.max, false);
+          const r = capEval(cm.min, cm.max, false);
+          const j = (W.A * a + W.B * r.b) / (W.A + W.B);
+          if (j > bestJ + 1e-9 || (Math.abs(j - bestJ) < 1e-9 && r.units < pick.r.units)) {
+            bestJ = j; pick = { a, r, sm, cm };
+          }
+        }
+      }
+      if (pick) { A = pick.a; B = pick.r.b; units = pick.r.units; sizeModel = pick.sm.name; capModel = pick.cm.name; }
+    }
+  }
+  else if (caps.ranges.length || caps.values.length) {
+    const list = caps.ranges.length ? caps.ranges : caps.values.map(v => ({ min: v, max: v }));
+    if (caps.band && !process.env.NOBAND) {
+      // 「系列覆盖 2000~20000kg/h」是**产品线区间**，不是单台机器的区间：落点在任何位置都是正常选型，
+      // 不能按利用率惩罚（否则 5000kg/h 落在 25% 处会被扣成 B=0.75）。只有越界才扣。
+      const lo = Math.min(...list.map(r => r.min)), hi = Math.max(...list.map(r => r.max));
+      if (ctx.cap >= lo && ctx.cap <= hi) { B = 1; units = 1; }
+      else if (ctx.cap > hi) { units = Math.ceil(ctx.cap / hi); B = units > 4 ? 0.72 : 0.9; }
+      else { B = ctx.cap >= lo * 0.7 ? 0.85 : 0.6; units = 1; }
+    } else {
+      ({ b: B, units } = chooseCap(list));
+    }
+  } else if (fb && fb.cap[0]) { ({ b: B, units } = capEval(fb.cap[0], fb.cap[1], true)); capUnknown = true; }
+  else { B = 0.55; capUnknown = true; }
+
+  // 大产能下的能量成本：19 例 ≥3t/h 的案例里只有 1 例走气流磨（压缩空气成本随处理量线性上涨），
+  // 3 例走蒸汽动能磨（过热蒸汽替代压缩空气，手册原话"超细化低成本生产"）。这里给气流磨在大产能上
+  // 一档经济性折减，不改变其物理可行性。
+  if (fam.super === '气流磨' && ctx.cap >= 3000 && !process.env.NOBIG) B *= 0.9;
+
+  // C 机理
+  let C = 0.55;
+  if (ctx.tags.length) {
+    C = 0.6;
+    for (const t of ctx.tags) { const r = K.matchTag(dev, t); C += r === true ? 0.14 : r === null ? 0 : -0.22; }
+    C = Math.max(0, Math.min(1, C));
+  }
+  // D 粉碎比
+  let D = 0.55;
+  if (ctx.ratio != null) {
+    D = ctx.marg ? Math.max(0.05, K.marginal(ctx.marg, fam.super, 'ratio', ctx.ratio)) : 0.6;
+  }
+  // E 特性开关
+  let fh = 0, fu = 0;
+  for (const t of ctx.tags) { const r = K.matchTag(dev, t); if (r === true) fh++; else if (r === null) fu++; }
+  const E = ctx.tags.length ? (fh + fu * 0.5) / ctx.tags.length : 0.7;
+  // F 物料/行业弱先验
+  const mat = dev.mat || '';
+  const F = ((K.CAT_ALIAS[ctx.cat] || []).some(a => a && mat.includes(a)) || (ctx.material && mat.includes(ctx.material))) ? 1 : 0.45;
+  // G 工艺链
+  const G = /闭路|串联|多级|一体|干燥|改性|循环|生产线|组合/.test((dev.sell || '') + (dev.prin || '')) ? 1 : 0.6;
+  // H 分级精度
+  const T = dev.c + ' ' + dev.n + ' ' + (dev.feat || '') + ' ' + (dev.prin || '') + ' ' + (dev.sell || '') + ' ' + (dev.oth || '');
+  const Hc = /MQPW|MQW|分级轮|分级转子|分级涡轮|带分级/.test(T) ? 1 : (/自分级|无转动部件/.test(T) ? 0.8 : /分级/.test(T) ? 0.6 : 0.3);
+  // P 案例先验
+  const P = prior[fam.super] != null ? prior[fam.super] : 0.02;
+
+  const total = W.A * A + W.B * B + W.C * C + W.D * D + W.E * E + W.F * F + W.G * G + W.H * Hc + W.P * P;
+  return { total, units, fam, A, B, C, D, E, F, G, H: Hc, P, sizeUnknown, capUnknown, sizeModel, capModel };
+}
+
+function ctxOf(c) {
+  return {
+    cat: K.CAT_ALIAS[K.MATCL(c.ind)] ? K.MATCL(c.ind) : K.MATCL(c.ind),
+    material: String(c.material).split(/[、,，/]/)[0].trim(),
+    // 案例成品粒度常标 D50/D90/D95/D99，直接和设备 D97 范围比会系统性偏细（D50 差 2.5 倍）。
+    // 统一换算到 D97 当量再比：D90/D95 ×1.2，D50 ×2.5，D99/D100 ×0.9（方案 §3.4）。
+    um: c.prod * (c.basis === 'D50' ? 2.5 : c.basis === 'D90' || c.basis === 'D95' ? 1.2 : c.basis === 'D99' || c.basis === 'D100' ? 0.9 : 1),
+    cap: c.cap, feed: c.feed, ratio: c.feed ? c.feed / c.prod : null,
+    tags: K.caseTags(c), fallback: null, marg: null
+  };
+}
+
+function run(mode) {
+  const results = [];
+  for (const c of cases) {
+    const isCN = c.site === 'CN';
+    if (mode === 'train' && !isCN) continue;
+    if (mode === 'holdout' && isCN) continue;
+    let train = CN;
+    if (mode === 'loo') train = CN.filter(x => x.id !== c.id);
+    if (mode === 'holdout') train = CN;
+    const prior = K.priorDist(K.buildPrior(train), c);
+    const fallback = K.familyFallback(train);
+    const marg = K.familyMarginals(train);
+    const ctx = ctxOf(c); ctx.fallback = fallback; ctx.marg = marg;
+    const scored = K.DATA.map(d => ({ dev: d, s: score(d, ctx, prior) })).filter(x => x.s).sort((a, b) => b.s.total - a.s.total);
+    const top = scored.slice(0, 3).map(x => ({ super: x.s.fam.super, fam: x.s.fam.fam, n: x.dev.n, total: x.s.total, units: x.s.units, s: x.s }));
+    const want = [...c.supers];
+    const ok3 = top.some(t => c.supers.has(t.super));
+    const ok1 = top[0] && c.supers.has(top[0].super);
+    results.push({ c, want, top, ok1, ok3, prior });
+  }
+  return results;
+}
+
+function setW(w) { W = w; }
+if (require.main !== module) { module.exports = { run, score, ctxOf, W, GATE, cases, CN, EN, setW, CNcases: CN }; return; }
+const arg = process.argv.slice(2);
+if (arg.includes('--case')) {
+  const needle = arg[arg.indexOf('--case') + 1] || '';
+  const c0 = CN.find(x => x.title.includes(needle)) || CN[+needle - 1];
+  if (!c0) { console.log('没找到案例'); process.exit(0); }
+  const train = CN.filter(x => x.id !== c0.id);
+  const prior = K.priorDist(K.buildPrior(train), c0);
+  const fb = K.familyFallback(train), marg = K.familyMarginals(train);
+  const ctx = ctxOf(c0); ctx.fallback = fb; ctx.marg = marg;
+  console.log('案例 ' + (CN.indexOf(c0) + 1) + ' ' + c0.title, '| 站点', c0.site);
+  console.log('  输入: 物料=' + c0.material + ' 行业=' + c0.ind + ' 产能=' + c0.cap + 'kg/h 成品D' + c0.basis + '=' + c0.prod + 'μm 入料=' + c0.feed + 'μm 粉碎比=' + (c0.feed / c0.prod).toFixed(1));
+  console.log('  官方标注族: ' + [...c0.supers].join('+') + '   (来源 ' + c0.labelSource + ')');
+  console.log('  先验: ' + Object.entries(prior).map(([k, v]) => k + ':' + v.toFixed(2)).join(' '));
+  const trace = [];
+  const scored = K.DATA.map(d => ({ d, s: score(d, ctx, prior, trace) })).filter(x => x.s).sort((a, b) => b.s.total - a.s.total);
+  scored.slice(0, 7).forEach(x => { const q = x.s;
+    console.log('  ' + (q.fam.super + '·' + q.fam.fam).padEnd(22), String(Math.round(q.total * 100)).padStart(3),
+      '| A' + q.A.toFixed(2), 'B' + q.B.toFixed(2), 'C' + q.C.toFixed(2), 'D' + q.D.toFixed(2), 'E' + q.E.toFixed(2), 'F' + q.F.toFixed(2), 'G' + q.G.toFixed(2), 'H' + q.H.toFixed(2), 'P' + q.P.toFixed(2),
+      '|', (q.sizeModel || '') + (q.capModel ? '/' + q.capModel : ''), q.sizeUnknown ? '(size?)' : '', q.capUnknown ? '(cap?)' : '', q.units > 1 ? q.units + '台' : '', x.d.n.slice(0, 22));
+  });
+  const seen = new Set();
+  trace.filter(t => { const k = t.split(':')[0]; if (seen.has(k)) return false; seen.add(k); return true; }).forEach(t => console.log('  门控出池 ' + t));
+  process.exit(0);
+}
+if (arg.includes('--tune')) {
+  const base = { A: 0.232, B: 0.116, C: 0.168, D: 0.137, E: 0.063, F: 0.032, G: 0.021, H: 0.042 };
+  const grid = { A: [0.14, 0.18, 0.22, 0.26], B: [0.08, 0.12, 0.16], C: [0.10, 0.14, 0.18], D: [0.06, 0.10, 0.14, 0.18], P: [0.05, 0.10, 0.15, 0.20] };
+  const pct = (r, k) => r.filter(x => x[k]).length / r.length;
+  let best = null, n = 0; const all = [];
+  for (const a of grid.A) for (const b of grid.B) for (const c of grid.C) for (const d of grid.D) for (const p of grid.P) {
+    // 相对序约束（v6 方案 §3.2 定下的优先级，不由调参推翻）：A 粒度 ≥ B 产能 ≥ C 机理 > D 粉碎比。
+    // 案例里粒度与产能几乎总能查到、机理只有粗标签、粉碎比依赖入料字段（多数案例缺），所以这个序是证据强度序。
+    // 加 --strict 时按 v6 的相对序（A≥B≥C>D）硬约束搜索；不加时纯按泛化指标选，
+    // 选完再手工把 C/D 并列的边界值拨开（见下方 W 的注释）。
+    if (process.env.STRICT && !(a >= b && b >= c && c > d)) continue;
+    const w = { ...base, A: a, B: b, C: c, D: d, P: p };
+    const sum = Object.values(w).reduce((x, y) => x + y, 0);
+    for (const k of Object.keys(w)) w[k] = w[k] / sum;
+    W = w; n++;
+    const l = run('loo'), h = run('holdout');
+    const sc = pct(l, 'ok3') + pct(h, 'ok3') + 0.5 * (pct(l, 'ok1') + pct(h, 'ok1'));
+    all.push({ w: Object.fromEntries(Object.entries(w).map(([k, v]) => [k, +v.toFixed(4)])), loo1: pct(l, 'ok1'), looT3: pct(l, 'ok3'), en1: pct(h, 'ok1'), enT3: pct(h, 'ok3'), sc });
+    if (!best || sc > best.sc) best = { w, sc, l, h };
+  }
+  require('fs').writeFileSync(require('path').join(__dirname, '..', 'data', 'tune-grid.json'), JSON.stringify(all));
+  const i2 = (W = best.w, run('train'));
+  console.log('搜索 ' + n + ' 组；目标 = 留一Top3 + 跨站Top3 + 0.5×(留一Top1 + 跨站Top1)（样本内未参与选参）');
+  console.log('权重 ' + JSON.stringify(Object.fromEntries(Object.entries(best.w).map(([k, v]) => [k, +v.toFixed(3)]))));
+  console.log('  留一 Top1=' + (pct(best.l, 'ok1') * 100).toFixed(1) + '% Top3=' + (pct(best.l, 'ok3') * 100).toFixed(1) +
+    '  | 跨站 Top1=' + (pct(best.h, 'ok1') * 100).toFixed(1) + '% Top3=' + (pct(best.h, 'ok3') * 100).toFixed(1) +
+    '  | 样本内 Top1=' + (pct(i2, 'ok1') * 100).toFixed(1) + '% Top3=' + (pct(i2, 'ok3') * 100).toFixed(1) + '%');
+  process.exit(0);
+}
+const batchIdx = arg.includes('--batch') ? +arg[arg.indexOf('--batch') + 1] : null;
+const showMiss = arg.includes('--miss') || batchIdx != null;
+
+function pct(a, b) { return (a / b * 100).toFixed(1) + '%'; }
+
+// 样本内
+const inS = run('train');
+// 留一
+const loo = run('loo');
+// 跨站
+const ho = run('holdout');
+
+const line = r => {
+  const t = r.top.map(x => x.super + '·' + x.fam + '(' + Math.round(x.total*100) + (x.units > 1 ? ',' + x.units + '台' : '') + ')').join(' > ');
+  return [
+    r.c.title.slice(0, 34).padEnd(34),
+    ('[' + r.want.join('+') + ']').padEnd(18),
+    t.slice(0, 92)
+  ].join(' ');
+};
+
+if (batchIdx) {
+  const a = (batchIdx - 1) * 25, b = a + 25;
+  const sub = inS.slice(a, b);
+  console.log('=== 第 ' + batchIdx + ' 批（第 ' + (a + 1) + '–' + Math.min(b, inS.length) + ' 例）===');
+  sub.forEach((r, i) => console.log((r.ok1 ? '✓' : r.ok3 ? '△' : '✗') + ' ' + String(a + i + 1).padStart(2) + ' ' + line(r)));
+  const h1 = sub.filter(r => r.ok1).length, h3 = sub.filter(r => r.ok3).length;
+  console.log('  本批 Top1=' + pct(h1, sub.length) + '  Top3=' + pct(h3, sub.length));
+} else {
+  console.log('【样本内 CN 99】 Top1=' + pct(inS.filter(r => r.ok1).length, inS.length) + '  Top3=' + pct(inS.filter(r => r.ok3).length, inS.length));
+  console.log('【留一 CN 99】   Top1=' + pct(loo.filter(r => r.ok1).length, loo.length) + '  Top3=' + pct(loo.filter(r => r.ok3).length, loo.length));
+  console.log('【跨站 EN 64】   Top1=' + pct(ho.filter(r => r.ok1).length, ho.length) + '  Top3=' + pct(ho.filter(r => r.ok3).length, ho.length));
+  if (showMiss) {
+    console.log('\n--- CN 样本内未命中 Top1 ---');
+    inS.filter(r => !r.ok1).forEach(r => console.log((r.ok3 ? '△' : '✗') + ' ' + line(r)));
+    console.log('\n--- EN 跨站未命中 Top3 ---');
+    ho.filter(r => !r.ok3).forEach(r => console.log('✗ ' + line(r)));
+  }
+}
+
+
+  };
+  var K = __req('./kb.js'), F = __req('./fit.js');
+
+  // UI 的物料类别 -> 案例行业（feats() 用行业算物料大类分格）
+  var CAT2IND = {
+    mineral: '非金属矿', hard: '非金属矿', battery: '电池材料', pharma: '医药',
+    food: '食品/保健品/化妆品', chem: '颜料/染料', herb: '其他材料',
+    metal: '粉末冶金', waste: '建材及固废', other: '其他材料'
+  };
+  // 先验只用中文站 99 例训练（与 tools/fit.js 的 train 同口径），跨站 EN 64 例留作验证，不参与线上先验。
+  var TRAIN = K.loadCases().filter(function(c){ return c.site === 'CN'; });
+  var PRIOR = K.buildPrior(TRAIN);
+  var FB = K.familyFallback(TRAIN);
+  var MARG = K.familyMarginals(TRAIN);
+
+  /**
+   * 把 UI 输入转成引擎上下文。
+   * um 必须是 D97 当量（D50×2.5 / D90,D95×1.2 / D99,D100×0.9），和一个案例的 ctxOf() 口径一致。
+   * feed 是入料粒度 μm（可选）：给了才算粉碎比，没给则该维度按中性处理、分级门控也不触发。
+   * size 是用户填的**原始**成品粒度（没换算成 D97 当量）：粉碎比要用原值算，
+   * 与 tools/fit.js 的 ctxOf()「ratio = feed / prod」口径保持一致，否则跨站对比会失真。
+   */
+  function makeCtx(o) {
+    var feed = +o.feed > 0 ? +o.feed : 0;
+    var raw = +o.size > 0 ? +o.size : o.um;
+    var q = { ind: CAT2IND[o.cat] || '其他材料', material: o.material || '', prod: raw, cap: o.cap, feed: feed, supers: new Set() };
+    return {
+      cat: o.cat || '', material: o.material || '', um: o.um, cap: o.cap, feed: feed,
+      ratio: feed > 0 ? feed / raw : null, tags: o.tags || [],
+      prior: K.priorDist(PRIOR, q), fallback: FB, marg: MARG
+    };
+  }
+
+  /** 排名：返回 [{dev, s}]，s 是 score() 的完整拆解（A/B/C/D/E/F/G/H/P）。 */
+  function rank(o, limit) {
+    var ctx = makeCtx(o);
+    var list = K.DATA.map(function(d){ return { dev: d, s: F.score(d, ctx, ctx.prior) }; })
+      .filter(function(x){ return x.s; })
+      .sort(function(a, b){ return b.s.total - a.s.total; });
+    return limit ? list.slice(0, limit) : list;
+  }
+
+  window.POWDER_ENGINE = { K: K, F: F, W: F.W, GATE: F.GATE, CAT2IND: CAT2IND, TRAIN: TRAIN, PRIOR: PRIOR, makeCtx: makeCtx, rank: rank };
+})();
+/* ==ENGINE_END== */
 
 /* ============ 主选型（v5） ============ */
 function evaluate(){
@@ -2464,112 +3322,28 @@ function evaluate(){
   const attrs=[...chipsEl.querySelectorAll('.switch-row.on')].map(r=>r.dataset.k);
   const selTags=attrs.map(k=>({id:SWITCH_TAG[k]||k, label:TAG_LABEL[k]||k}));
 
-  const results=[];
-  for(const dev of DATA){
-    const mat=dev.mat||'';
-    // 1. 类别匹配（同义词任一命中）
-    let catHit=false, catNote='';
-    if(aliases.some(a=>a && mat.includes(a))){ catHit=true; catNote='类别命中：'+cat; }
-    else { catNote='类别未命中：设备适用'+mat; }
-    let nameHit=false;
-    if(name && mat.includes(name)){ nameHit=true; catNote+='（物料名"'+name+'"命中）'; }
-
-    // 2. 粒度匹配
-    let sizeScore=0, sizeNote='未校验';
-    if(sizeInfo){
-      const rs=parseDevSizeRanges(dev.size);
-      if(rs.ranges.length===0){ sizeNote='数据库未标注该设备粒度范围'; }
-      else{
-        const wantD97 = ['D97','D99','D100'].includes(sizeInfo.key);
-        let use=rs;
-        if(wantD97 && rs.type==='D50'){ use=rs; sizeNote='数据库仅标注D50范围，按D50近似比对'; }
-        else if(!wantD97 && rs.type==='D97'){ use=rs; sizeNote='数据库仅标注D97范围，按D97近似比对'; }
-        else if(!wantD97 && rs.type==='D50'){ sizeNote='按'+sizeInfo.key+'比对D50范围'; }
-        else if(wantD97 && rs.type==='D97'){ sizeNote='按'+sizeInfo.key+'比对D97范围'; }
-        let best=null;
-        for(const r of use.ranges){
-          if(sizeInfo.um>=r.min&&sizeInfo.um<=r.max){ best={score:1,note:sizeNote+sizeInfo.um+'μm 在'+r.min+'~'+r.max+'μm范围内'}; break; }
-        }
-        if(!best){
-          let minGap=Infinity, gapNote='';
-          for(const r of use.ranges){
-            if(sizeInfo.um<r.min){ const g=(r.min-sizeInfo.um)/r.min; if(g<minGap){minGap=g; gapNote='低于该设备最低粒度'+r.min+'μm';} }
-            else if(sizeInfo.um>r.max){ const g=(sizeInfo.um-r.max)/r.max; if(g<minGap){minGap=g; gapNote='高于该设备最高粒度'+r.max+'μm';} }
-          }
-          if(minGap<0.5){ best={score:0.5,note:sizeNote+'目标粒度接近：'+gapNote}; }
-          else if(minGap<1.0){ best={score:0.2,note:sizeNote+'目标粒度偏差较大：'+gapNote}; }
-          else { best={score:0,note:sizeNote+'目标粒度不匹配：'+gapNote}; }
-        }
-        sizeScore=best.score; sizeNote=best.note;
-      }
-    }
-
-    // 3. 产能匹配（kg/h）
-    let capScore=0, capNote='未校验';
-    if(cap!=null){
-      const caps=parseDevCaps(dev.cap);
-      if(caps.ranges.length===0&&caps.values.length===0){ capNote='数据库未标注该设备产能'; }
-      else{
-        let hit=false, bestGap=Infinity, bestNote='';
-        for(const r of caps.ranges){ if(cap>=r.min&&cap<=r.max){hit=true; bestNote='目标产能'+cap+'kg/h 在'+r.min+'~'+r.max+'kg/h范围内'; break;} }
-        if(!hit){
-          for(const r of caps.ranges){
-            if(cap<r.min){ const g=(r.min-cap)/r.min; if(g<bestGap){bestGap=g; bestNote='低于该系列产能下限'+r.min+'kg/h';} }
-            else if(cap>r.max){ const g=(cap-r.max)/r.max; if(g<bestGap){bestGap=g; bestNote='高于该系列产能上限'+r.max+'kg/h';} }
-          }
-          if(caps.values.length){
-            for(const v of caps.values){ const g=Math.abs(cap-v)/v; if(g<bestGap){bestGap=g; bestNote='接近离散产能档位'+v+'kg/h';} }
-          }
-          if(bestGap<0.5) capScore=0.5;
-          else if(bestGap<1.0) capScore=0.2;
-          else capScore=0;
-          capNote=bestNote;
-        } else { capScore=1; capNote=bestNote; }
-      }
-    }
-
-    // 4. 特性标签匹配
-    let featHit=0, featUnknown=0;
-    if(selTags.length){
-      for(const t of selTags){
-        const r=matchTag(dev,t);
-        if(r.hit===true) featHit++;
-        else if(r.hit===null) featUnknown++;
-      }
-    }
-    const featScore=selTags.length? (featHit*1+featUnknown*0.5)/selTags.length : 1;
-
-    // 5. 分级精度
-    let clsScore=0, clsNote='未评估';
-    const devTxt5=(dev.c+' '+dev.n+' '+dev.feat+' '+dev.prin+' '+dev.sell+' '+dev.oth);
-    if(/MQPW|MQW|分级轮|分级转子|分级涡轮|带分级/.test(devTxt5)){ clsScore=1; clsNote='带分级轮/分级转子，粒度分布窄可控'; }
-    else if(/自分级|无转动部件/.test(devTxt5)){ clsScore=0.7; clsNote='自分级结构，粒度分布较窄'; }
-    else if(/流化床/.test(devTxt5)){ clsScore=0.7; clsNote='流化床结构，分级与粉碎协同'; }
-    else if(/分级/.test(devTxt5)){ clsScore=0.5; clsNote='含分级功能，粒度可控'; }
-    else { clsScore=0.2; clsNote='无独立分级结构，粒度分布偏宽'; }
-
-    // 6. 纯度
-    let purScore=0, purNote='未评估';
-    if(/自碰撞|无机械磨损|无介质|物料碰撞/.test(devTxt5)){ purScore=1; purNote='物料自碰撞粉碎，无机械磨损、纯度高'; }
-    else if(/陶瓷|零金属|无金属|无铁/.test(devTxt5)){ purScore=0.8; purNote='陶瓷/无金属结构，避免金属污染'; }
-    else if(/气流/.test(dev.c)){ purScore=0.6; purNote='气流粉碎无介质污染，纯度较好'; }
-    else { purScore=0.2; purNote='机械冲击粉碎，存在磨损污染风险'; }
-
-    // 综合评分：类别35 + 粒度20 + 产能15 + 特性10 + 分级精度10 + 纯度10
-    const total=Math.round((catHit?35:0)+(sizeScore*20)+(capScore*15)+(featScore*10)+(clsScore*10)+(purScore*10));
-    results.push({dev, total, catHit, sizeScore, capScore, featScore, clsScore, purScore});
+  // ---- 打分：调 v7 引擎（tools/kb.js + tools/fit.js 由 build-engine-embed.js 打包注入）----
+  // 与 node tools/fit.js 的离线评估是同一份 score()：九项加权
+  // A 粒度 / B 产能（含多台并联）/ C 机理 / D 粉碎比 / E 特性 / F 物料行业先验
+  // G 工艺链 / H 分级精度 / P 案例先验；低于物理可行的设备由门控直接出池。
+  const feedUm=readFeedUm();
+  const d97Eq=um=>{ const k=sizeInfo.key; const f=k==='D50'?2.5:(k==='D90'||k==='D95')?1.2:(k==='D99'||k==='D100')?0.9:1; return um*f; };
+  const um97=d97Eq(actualSizeUm);
+  let ranked=[];
+  try{
+    ranked=POWDER_ENGINE.rank({cat:catVal, material:name, um:um97, cap:cap, feed:feedUm, tags:selTags.map(t=>t.id)}, 60) || [];
+  }catch(err){
+    console.error('[engine]', err);
   }
 
-  results.sort((a,b)=>b.total-a.total);
-  const top=results[0];
-  const hasGood=top && top.total>=50 && top.catHit;
-  let showList;
-  if(hasGood){
-    const good=results.filter(r=>r.total>=50 && r.catHit);
-    showList=good.slice(0,3);
-  }
-  if(!showList || !showList.length) showList=results.slice(0,3);
-  renderTop3(showList, {cap, sizeInfo, attrs, isCandidate:!hasGood, name:name, feedUm:0});
+  const items=ranked.slice(0,3).map(x=>({
+    dev:x.dev, total:x.s.total*100, s:x.s,
+    model:x.s.capModel||x.s.sizeModel||'',
+    ratio: feedUm>0 ? feedUm/um97 : null
+  }));
+  // 「有把握」判据：引擎总分（权重和为 1，总分即加权命中率）≥0.60
+  const hasGood=items.length>0 && items[0].s.total>=0.60;
+  renderTop3(items, {cap, sizeInfo, attrs, isCandidate:!hasGood, name:name, feedUm:feedUm});
 }
 
 /* ============ 结果渲染（复用 1.html CSS 类） ============ */
@@ -2596,7 +3370,8 @@ function renderTop3(items, ctx){
   const cards = items.map((it,idx)=>{
     const d=it.dev;
     const pm=pickModel(d, ctx.cap, ctx.sizeInfo);
-    const model=pm.model ? pm.model : (d.m? '（具体型号请咨询工程师）' : '型号待定');
+    // 引擎已按型号级联合打分选出型号（capModel/sizeModel），优先用它，保证「打分的型号」和「展示的型号」是同一台
+    const model=it.model ? it.model : (pm.model ? pm.model : (d.m? '（具体型号请咨询工程师）' : '型号待定'));
     const pct=Math.min(99, Math.max(35, Math.round(it.total)));
     const tagCls = pct>=80?'tag-green':(pct>=60?'tag-yellow':'tag-red');
     const rs=parseDevSizeRanges(d.size);
