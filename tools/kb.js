@@ -81,7 +81,7 @@ function _parseModels(_s) {
     if (kind === 'cap') {
       // 产能字段里混着粒度（"分级产能D97:15μm:2.7/4.0/5.4"）或斜杠并列值时，不做型号级解析，
       // 交给族级兜底（案例统计），否则会把 μm 当 mm 算出 97000kg/h 这种垃圾值。
-      if (/μm|µm|um|目|mesh/i.test(chunk)) continue;
+      if (/μm|µm|um\b|目|mesh/i.test(chunk)) continue;
       if (/\d(?:[.,]\d+)?\/\d/.test(chunk)) continue;
       const u = (chunk.match(/(kg\/h|t\/h|g\/h)/i) || [])[1];
       if (u) carryUnit = u.toLowerCase();
