@@ -177,3 +177,7 @@ git push origin HEAD:main
 ```
 
 推送后 Pages 约需 1 分钟重新构建，用 `gh api repos/3698688050-pixel/powder-equipment-selector/pages --jq .status` 查 `built` 即生效。
+
+---
+
+同系列的其他工具见 [工作台索引](https://3698688050-pixel.github.io/)。
